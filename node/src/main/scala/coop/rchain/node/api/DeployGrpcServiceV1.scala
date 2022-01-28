@@ -185,7 +185,7 @@ object DeployGrpcServiceV1 {
       ): Task[ListeningParDataResponse] =
         defer(
           BlockAPI
-            .getDataAtPar[F](request.par, request.blockHash, request.usePreStateHash)
+            .getDataAtPar[F](request.par, request.blockHash)
         ) { r =>
           import ListeningParDataResponse.Message
           import ListeningParDataResponse.Message._

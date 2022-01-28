@@ -217,8 +217,10 @@ object Main {
       case Some(options.bondStatus)           => BondStatus(options.bondStatus.validatorPublicKey())
       case Some(options.dataAtName)           => DataAtName(options.dataAtName.name())
       case Some(options.contAtName)           => ContAtName(options.contAtName.name())
-      case Some(options.status)               => Status
-      case _                                  => Help
+      case Some(options.dataAtPar) =>
+        DataAtPar(options.dataAtPar.name(), options.dataAtPar.blockHash())
+      case Some(options.status) => Status
+      case _                    => Help
     }
 
   private def decryptKeyFromCon[F[_]: Sync: ConsoleIO](

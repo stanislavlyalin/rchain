@@ -52,7 +52,6 @@ message DataAtNameQuery {
 message DataAtParQuery {
   string blockHash     = 1;
   Par par              = 2 [(scalapb.field).no_box = true];
-  bool usePreStateHash = 3;
 }
 
 message ContinuationAtNameQuery {

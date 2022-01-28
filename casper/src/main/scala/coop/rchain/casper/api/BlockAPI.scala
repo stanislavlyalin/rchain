@@ -803,8 +803,7 @@ object BlockAPI {
 
   def getDataAtPar[F[_]: Concurrent: EngineCell: Log: SafetyOracle: BlockStore](
       par: Par,
-      blockHash: String,
-      usePreStateHash: Boolean
+      blockHash: String
   ): F[ApiErr[(Seq[Par], LightBlockInfo)]] = {
 
     def casperResponse(

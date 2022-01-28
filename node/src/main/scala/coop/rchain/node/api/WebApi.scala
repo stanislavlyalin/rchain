@@ -108,7 +108,7 @@ object WebApi {
 
     def getDataAtPar(req: DataAtNameByBlockHashRequest): F[RhoDataResponse] =
       BlockAPI
-        .getDataAtPar(toPar(req), req.blockHash, req.usePreStateHash)
+        .getDataAtPar(toPar(req), req.blockHash)
         .flatMap(_.liftToBlockApiErr)
         .map(toRhoDataResponse)
 
