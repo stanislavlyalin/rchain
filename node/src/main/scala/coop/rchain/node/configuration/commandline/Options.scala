@@ -1,8 +1,9 @@
 package coop.rchain.node.configuration.commandline
 
 import java.nio.file.{Path, Paths}
-
 import coop.rchain.casper.util.comm.ListenAtName.{Name, PrivName, PubName}
+import coop.rchain.casper.util.comm.ListenAtPar
+import coop.rchain.casper.util.comm.ListenAtPar._
 import coop.rchain.comm.PeerNode
 import coop.rchain.crypto.signatures.Ed25519
 import coop.rchain.crypto.{PrivateKey, PublicKey}
@@ -740,6 +741,56 @@ final case class Options(arguments: Seq[String]) extends ScallopConf(arguments) 
 
   addSubcommand(dataAtName)
   addSubcommand(contAtName)
+
+  val dataAtPar = new Subcommand("data-at-par") {
+    descr(
+      "Get data at par"
+    )
+    helpWidth(width)
+
+    val blockHash =
+      opt[String](required = true, descr = "the hash value of the block", name = "block-hash")
+
+    val content = opt[String](
+      required = true,
+      descr = "data for the provided type",
+      name = "content",
+      short = 'c'
+    )
+
+    // TODO: To match the code, you should use the solution from here
+    //  https://stackoverflow.com/questions/12078366/can-i-get-a-compile-time-list-of-all-of-the-case-objects-which-derive-from-a-sea
+    val allowedTypes = "UnforgPrivate, UnforgDeploy, UnforgDeployer"
+
+    val nameType =
+      opt[String](
+        required = true,
+        descr = s"Type of the specified name (one of $allowedTypes)",
+        name = "type",
+        short = 't'
+      )
+
+    def dataAtParConverter(nameF: () => String, dataF: () => String, argType0: ArgType.V) =
+      new ValueConverter[ListenAtPar.Name] {
+        override def parse(
+            s: List[(String, List[String])]
+        ): Either[String, Option[ListenAtPar.Name]] = {
+          val name = create(nameF(), dataF())
+          Either.cond(
+            name.isDefined,
+            name,
+            s"Unknown type of the specified name. Should be one of $allowedTypes"
+          )
+        }
+        override val argType: ArgType.V = argType0
+      }
+
+    implicit val conv =
+      dataAtParConverter(() => nameType.getOrElse(""), () => content.getOrElse(""), ArgType.SINGLE)
+
+    val name = opt[ListenAtPar.Name]()
+  }
+  addSubcommand(dataAtPar)
 
   val findDeploy = new Subcommand("find-deploy") {
     descr(
