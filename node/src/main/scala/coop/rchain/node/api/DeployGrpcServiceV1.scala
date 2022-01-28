@@ -180,6 +180,22 @@ object DeployGrpcServiceV1 {
           )
         }
 
+      def getDataAtPar(
+          request: DataAtParQuery
+      ): Task[ListeningParDataResponse] =
+        defer(
+          BlockAPI
+            .getDataAtPar[F](request.par, request.blockHash, request.usePreStateHash)
+        ) { r =>
+          import ListeningParDataResponse.Message
+          import ListeningParDataResponse.Message._
+          ListeningParDataResponse(
+            r.fold[Message](
+              Error, { case (par, block) => Payload(ListeningParDataPayload(par, block)) }
+            )
+          )
+        }
+
       def listenForContinuationAtName(
           request: ContinuationAtNameQuery
       ): Task[ContinuationAtNameResponse] =
