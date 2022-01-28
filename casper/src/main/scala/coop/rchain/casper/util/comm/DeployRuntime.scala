@@ -66,7 +66,7 @@ object DeployRuntime {
       blockHash: String
   ): F[Unit] =
     gracefulExit {
-      EitherT(DeployService[F].getDataAtPar(DataAtParQuery(blockHash, par))).map(kp("")).value
+      EitherT(DeployService[F].getDataAtPar(DataAtParQuery(par, blockHash))).map(kp("")).value
     }
 
   def findDeploy[F[_]: Functor: Sync: Time: DeployService](
