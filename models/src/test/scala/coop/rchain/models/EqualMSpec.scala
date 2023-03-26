@@ -4,12 +4,13 @@ import com.google.protobuf.ByteString
 import coop.rchain.models.Expr.ExprInstance.GInt
 import coop.rchain.models.testImplicits._
 import coop.rchain.models.testUtils.TestUtils.forAllSimilarA
-import monix.eval.Coeval
+import cats.Eval
 import org.scalacheck.{Arbitrary, Shrink}
 import org.scalatest.Assertion
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
+import coop.rchain.catscontrib.effect.implicits.sEval
 
 import scala.Function.tupled
 import scala.collection.immutable.BitSet
@@ -97,7 +98,7 @@ class EqualMSpec extends AnyFlatSpec with ScalaCheckPropertyChecks with Matchers
 
     val referenceResult = reference(x, y)
     val equalsResult    = x == y
-    val equalMResult    = EqualM[A].equal[Coeval](x, y).value
+    val equalMResult    = EqualM[A].equal[Eval](x, y).value
 
     withClue(
       s"""

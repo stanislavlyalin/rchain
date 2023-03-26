@@ -7,13 +7,14 @@ import coop.rchain.models.Connective.ConnectiveInstance.{Empty => _}
 import coop.rchain.models.serialization.implicits._
 import coop.rchain.models.testImplicits._
 import coop.rchain.shared.Serialize
-import monix.eval.Coeval
+import cats.Eval
 import org.scalacheck.{Arbitrary, Shrink}
 import org.scalatest.Assertion
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
 import scalapb.GeneratedMessageCompanion
+import coop.rchain.catscontrib.effect.implicits.sEval
 
 import scala.collection.immutable.BitSet
 import scala.reflect.ClassTag
@@ -57,7 +58,7 @@ class RhoTypesTest extends AnyFlatSpec with ScalaCheckPropertyChecks with Matche
   }
 
   def stacksafeSizeSameAsReference[A <: StacksafeMessage[A]](a: A): Assertion =
-    assert(ProtoM.serializedSize(a).value() == a.serializedSize)
+    assert(ProtoM.serializedSize(a).value == a.serializedSize)
 
   def stacksafeWriteToSameAsReference[A <: StacksafeMessage[A]](a: A): Assertion =
     assert(ProtoM.toByteArray(a).value sameElements a.toByteArray)
@@ -72,7 +73,7 @@ class RhoTypesTest extends AnyFlatSpec with ScalaCheckPropertyChecks with Matche
     // We also check `stacksafeDeserialize(referenceSerialize(a)).equals(a)` just in case :)
     val referenceBytes = a.toByteArray
     val in             = CodedInputStream.newInstance(referenceBytes)
-    val decoded        = companion.defaultInstance.mergeFromM[Coeval](in).value
+    val decoded        = companion.defaultInstance.mergeFromM[Eval](in).value
     val encoded        = decoded.toByteArray
     assert(encoded sameElements referenceBytes)
     assert(decoded == a)
