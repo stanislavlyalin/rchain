@@ -110,6 +110,7 @@ object TransactionBalanceMain {
       }
     } yield ()
 
+    import cats.effect.unsafe.implicits.global
     task.unsafeRunSync
   }
 }

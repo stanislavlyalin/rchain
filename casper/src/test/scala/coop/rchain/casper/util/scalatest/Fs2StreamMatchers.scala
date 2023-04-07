@@ -1,6 +1,7 @@
 package coop.rchain.casper.util.scalatest
 
 import cats.effect.IO
+import cats.effect.unsafe.implicits.global
 import fs2.Stream
 import org.scalatest.matchers.{MatchResult, Matcher}
 

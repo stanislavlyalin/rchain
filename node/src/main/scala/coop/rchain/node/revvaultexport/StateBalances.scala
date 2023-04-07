@@ -18,7 +18,6 @@ import coop.rchain.shared.Log
 import coop.rchain.shared.syntax._
 
 import java.nio.file.Path
-import scala.concurrent.ExecutionContext
 import scala.concurrent.ExecutionContext.global
 
 object StateBalances {
@@ -41,7 +40,7 @@ object StateBalances {
     } yield unf
   }
 
-  def read[F[_]: Async: Parallel: ContextShift](
+  def read[F[_]: Async: Parallel](
       shardId: String,
       blockHash: String,
       vaultTreeHashMapDepth: Int,

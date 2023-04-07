@@ -26,6 +26,7 @@ import org.scalatest._
 import org.scalatest.funspec.AnyFunSpec
 import org.scalatest.matchers.should.Matchers
 import cats.effect.Ref
+import cats.effect.unsafe.implicits.global
 
 class RunningHandleHasBlockSpec extends AnyFunSpec with BeforeAndAfterEach with Matchers {
   import coop.rchain.shared.RChainScheduler._

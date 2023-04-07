@@ -18,6 +18,7 @@ import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import coop.rchain.shared.RChainScheduler._
 import cats.effect.Deferred
+import cats.effect.unsafe.implicits.global
 
 class ProposerSpec extends AnyFlatSpec with Matchers with BlockDagStorageFixture {
 

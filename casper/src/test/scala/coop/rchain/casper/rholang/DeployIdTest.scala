@@ -1,5 +1,6 @@
 package coop.rchain.casper.rholang
 
+import cats.effect.unsafe.implicits.global
 import cats.effect.{IO, Resource}
 import cats.syntax.all._
 import cats.implicits.catsSyntaxApplicativeId

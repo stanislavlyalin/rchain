@@ -21,7 +21,7 @@ import scala.concurrent.{ExecutionContext, SyncVar}
 import scala.util.Random
 import cats.effect.Ref
 
-abstract class RSpaceOps[F[_]: Async: ContextShift: Log: Metrics: Span, C, P, A, K](
+abstract class RSpaceOps[F[_]: Async: Log: Metrics: Span, C, P, A, K](
     historyRepository: HistoryRepository[F, C, P, A, K],
     val storeAtom: AtomicAny[HotStore[F, C, P, A, K]],
     rholangEC: ExecutionContext

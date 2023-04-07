@@ -203,6 +203,7 @@ object MergeBalanceMain {
                          }
     } yield adjustedAccounts
 
+    import cats.effect.unsafe.implicits.global
     val accountMap = task.unsafeRunSync
 
     val file = mergeFile.toFile

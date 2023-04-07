@@ -1,5 +1,6 @@
 package coop.rchain.rspace.history
 
+import cats.effect.unsafe.implicits.global
 import cats.effect.{IO, Sync}
 import cats.syntax.all._
 import coop.rchain.rspace.hashing.Blake2b256Hash

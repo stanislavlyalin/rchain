@@ -1,6 +1,7 @@
 package coop.rchain.rholang.interpreter
 
 import cats.effect.IO
+import cats.effect.unsafe.implicits.global
 import com.google.protobuf.ByteString
 import coop.rchain.crypto.hash.{Blake2b256, Blake2b512Random, Keccak256, Sha256}
 import coop.rchain.crypto.signatures.{Ed25519, Secp256k1}

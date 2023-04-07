@@ -1,5 +1,6 @@
 package coop.rchain.comm.rp
 
+import cats.effect.unsafe.implicits.global
 import cats.syntax.all._
 import cats.{catsInstancesForId => _, _}
 import org.scalatest.funspec.AnyFunSpec
@@ -15,7 +16,7 @@ import coop.rchain.shared._
 import org.scalatest._
 
 import scala.concurrent.duration._
-import cats.effect.Ref
+import cats.effect.{IO, Ref}
 
 class FindAndConnectSpec
     extends AnyFunSpec
@@ -25,13 +26,13 @@ class FindAndConnectSpec
 
   import ScalaTestCats._
 
-  type Effect[A] = Id[A]
+  type Effect[A] = IO[A]
 
   val src: PeerNode              = peer("src")
   val deftimeout: FiniteDuration = FiniteDuration(1, MILLISECONDS)
-  implicit val log               = new Log.NOPLog[Id]
+  implicit val log               = new Log.NOPLog[IO]
   implicit val time              = new LogicalTime[Effect]
-  implicit val metric            = new Metrics.MetricsNOP[Id]
+  implicit val metric            = new Metrics.MetricsNOP[IO]
   implicit val nodeDiscovery     = new NodeDiscoveryStub[Effect]()
   implicit val rpConf            = conf(defaultTimeout = deftimeout)
 
@@ -71,7 +72,7 @@ class FindAndConnectSpec
         // when
         val result = Connect.findAndConnect[Effect](connect)
         // then
-        result.size shouldBe (2)
+        result.unsafeRunSync().size shouldBe (2)
         result should contain(peer("A"))
         result should not contain (peer("B"))
         result should contain(peer("C"))
@@ -99,7 +100,7 @@ class FindAndConnectSpec
         // when
         val result = Connect.findAndConnect[Effect](connect)
         // then
-        result.size shouldBe (1)
+        result.unsafeRunSync().size shouldBe (1)
         result should contain(peer("A"))
         result should not contain (peer("B"))
         result should not contain (peer("C"))
@@ -112,16 +113,18 @@ class FindAndConnectSpec
   private def peer(name: String): PeerNode =
     PeerNode(NodeIdentifier(name.getBytes), Endpoint("host", 80, 80))
 
-  private def mkConnections(peers: PeerNode*): ConnectionsCell[Id] =
-    Ref.unsafe[Id, Connections](peers.reverse.foldLeft(Connections.empty) {
-      case (acc, el) => acc.addConn(el)
-    })
+  private def mkConnections(peers: PeerNode*): ConnectionsCell[IO] =
+    Ref
+      .of[IO, Connections](peers.reverse.foldLeft(Connections.empty) {
+        case (acc, el) => acc.addConn(el)
+      })
+      .unsafeRunSync()
 
   private def conf(
       maxNumOfConnections: Int = 5,
       numOfConnectionsPinged: Int = 5,
       defaultTimeout: FiniteDuration
-  ): RPConfAsk[Id] =
+  ): RPConfAsk[IO] =
     new ConstApplicativeAsk(
       RPConf(
         clearConnections = ClearConnectionsConf(numOfConnectionsPinged),

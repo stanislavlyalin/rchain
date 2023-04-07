@@ -24,7 +24,7 @@ import org.scalatest.matchers.should.Matchers
 //  import coop.rchain.shared.RChainScheduler._
 //  val outcomeCh = "ret"
 //
-//  private def execute[F[_]: Async: Parallel: ContextShift: Metrics: Span: Log](
+//  private def execute[F[_]: Async: Parallel: Metrics: Span: Log](
 //      source: String
 //  ): F[Either[InterpreterError, BigInt]] =
 //    mkRuntime[F]("rholang-bigint")

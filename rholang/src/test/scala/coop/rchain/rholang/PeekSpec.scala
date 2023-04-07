@@ -1,6 +1,7 @@
 package coop.rchain.rholang
 
 import cats.effect.IO
+import cats.effect.unsafe.implicits.global
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import coop.rchain.metrics.{Metrics, NoopSpan, Span}

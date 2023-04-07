@@ -1,5 +1,6 @@
 package coop.rchain.rspace.concurrent
 
+import cats.effect.unsafe.implicits.global
 import cats.effect.{IO, Sync}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers

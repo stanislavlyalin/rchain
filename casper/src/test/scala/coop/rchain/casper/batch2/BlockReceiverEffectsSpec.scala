@@ -14,7 +14,7 @@ import coop.rchain.crypto.signatures.Secp256k1
 import coop.rchain.models.BlockHash.BlockHash
 import coop.rchain.models.syntax._
 import coop.rchain.shared.Log
-import fs2.concurrent.Queue
+import fs2.concurrent.Channel
 import org.mockito.captor.ArgCaptor
 import org.mockito.cats.IdiomaticMockitoCats
 import org.mockito.{ArgumentMatchersSugar, IdiomaticMockito}
@@ -42,7 +42,7 @@ import scala.collection.immutable.SortedMap
 //      case (incomingQueue, _, outStream, bs, br, bds) =>
 //        for {
 //          block   <- IO.delay(makeBlock())
-//          _       <- incomingQueue.enqueue1(block)
+//          _       <- incomingQueue.send(block)
 //          outList <- outStream.take(1).compile.toList
 //        } yield {
 //          bs.put(Seq((block.blockHash, block))) wasCalled once
@@ -59,7 +59,7 @@ import scala.collection.immutable.SortedMap
 //    case (incomingQueue, _, outStream, bs, br, bds) =>
 //      for {
 //        block <- IO.delay(makeBlock())
-//        _     <- incomingQueue.enqueue1(block)
+//        _     <- incomingQueue.send(block)
 //      } yield {
 //        bs.put(*) wasNever called
 //        bs.contains(*) wasNever called
@@ -73,7 +73,7 @@ import scala.collection.immutable.SortedMap
 //    case (incomingQueue, _, outStream, bs, br, bds) =>
 //      for {
 //        block <- IO.delay(makeBlock().copy(blockHash = "abc".unsafeHexToByteString))
-//        _     <- incomingQueue.enqueue1(block)
+//        _     <- incomingQueue.send(block)
 //      } yield {
 //        bs.put(*) wasNever called
 //        bs.contains(*) wasNever called
@@ -87,7 +87,7 @@ import scala.collection.immutable.SortedMap
 //    case (incomingQueue, _, outStream, bs, br, bds) =>
 //      for {
 //        block <- IO.delay(makeBlock().copy(sig = "abc".unsafeHexToByteString))
-//        _     <- incomingQueue.enqueue1(block)
+//        _     <- incomingQueue.send(block)
 //      } yield {
 //        bs.put(*) wasNever called
 //        bs.contains(*) wasNever called
@@ -105,15 +105,15 @@ import scala.collection.immutable.SortedMap
 //        a2 = makeBlock(List(a1.blockHash))
 //
 //        // Put the parent and child in the input queue
-//        _ <- incomingQueue.enqueue1(a2)
-//        _ <- incomingQueue.enqueue1(a1)
+//        _ <- incomingQueue.send(a2)
+//        _ <- incomingQueue.send(a1)
 //
 //        // Dependencies of the child (its parent) have not yet been resolved,
 //        // so only the parent goes to the output queue, since it has no dependencies
 //        a1InOutQueue <- outStream.take(1).compile.lastOrError
 //
 //        // A1 is now validated (e.g. in BlockProcessor)
-//        _ <- validatedQueue.enqueue1(a1)
+//        _ <- validatedQueue.send(a1)
 //
 //        // All dependencies of child A2 are resolved, so it also goes to the output queue
 //        a2InOutQueue <- outStream.take(1).compile.lastOrError
@@ -166,8 +166,8 @@ import scala.collection.immutable.SortedMap
 //
 //  private def withEnv[F[_]: Async: Log](shardId: String)(
 //      f: (
-//          Queue[F, BlockMessage],
-//          Queue[F, BlockMessage],
+//          Channel[F, BlockMessage],
+//          Channel[F, BlockMessage],
 //          Stream[F, BlockHash],
 //          BlockStore[F],
 //          BlockRetriever[F],
@@ -176,10 +176,10 @@ import scala.collection.immutable.SortedMap
 //  ): F[Assertion] =
 //    for {
 //      state                 <- Ref[F].of(BlockReceiverState[BlockHash])
-//      incomingBlockQueue    <- Queue.unbounded[F, BlockMessage]
-//      incomingBlockStream   = incomingBlockQueue.dequeue
-//      validatedBlocksQueue  <- Queue.unbounded[F, BlockMessage]
-//      validatedBlocksStream = validatedBlocksQueue.dequeue
+//      incomingBlockQueue    <- Channel.unbounded[F, BlockMessage]
+//      incomingBlockStream   = incomingBlockQueue.stream
+//      validatedBlocksQueue  <- Channel.unbounded[F, BlockMessage]
+//      validatedBlocksStream = validatedBlocksQueue.stream
 //
 //      // Create mock separately for each test
 //      bs  = blockStoreMock[F]
@@ -193,7 +193,7 @@ import scala.collection.immutable.SortedMap
 //          incomingBlockStream,
 //          validatedBlocksStream,
 //          shardId,
-//          incomingBlockQueue.enqueue1
+//          incomingBlockQueue.send
 //        )
 //      }
 //      res <- f(incomingBlockQueue, validatedBlocksQueue, blockReceiver, bs, br, bds)

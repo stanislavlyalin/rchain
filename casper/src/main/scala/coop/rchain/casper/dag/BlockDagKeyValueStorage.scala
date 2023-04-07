@@ -248,7 +248,8 @@ object BlockDagKeyValueStorage {
           // TODO: include only non-finalized block
           dmsSt <- Ref.of(DagMessageState[BlockHash, Validator]())
           fsSt  <- Ref.of(Map[Set[BlockHash], FringeData]())
-          initMsgMapJob = Stream.fromIterator(heightMap.values.flatten.iterator).evalMap { hash =>
+          i     = heightMap.values.flatten.iterator
+          initMsgMapJob = Stream.fromIterator(i, 1).evalMap { hash =>
             for {
               ds     <- dmsSt.get
               fs     <- fsSt.get

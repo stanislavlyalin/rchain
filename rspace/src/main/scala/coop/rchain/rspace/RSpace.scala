@@ -18,7 +18,7 @@ import monix.execution.atomic.AtomicAny
 import scala.collection.SortedSet
 import scala.concurrent.ExecutionContext
 
-class RSpace[F[_]: Async: ContextShift: Log: Metrics: Span, C, P, A, K](
+class RSpace[F[_]: Async: Log: Metrics: Span, C, P, A, K](
     historyRepository: HistoryRepository[F, C, P, A, K],
     storeAtom: AtomicAny[HotStore[F, C, P, A, K]],
     rholangEC: ExecutionContext
@@ -235,7 +235,7 @@ object RSpace {
   /**
     * Creates [[RSpace]] from [[HistoryRepository]] and [[HotStore]].
     */
-  def apply[F[_]: Async: ContextShift: Span: Metrics: Log, C, P, A, K](
+  def apply[F[_]: Async: Span: Metrics: Log, C, P, A, K](
       historyRepository: HistoryRepository[F, C, P, A, K],
       store: HotStore[F, C, P, A, K],
       rholangEC: ExecutionContext
@@ -252,7 +252,7 @@ object RSpace {
   /**
     * Creates [[RSpace]] from [[KeyValueStore]]'s,
     */
-  def create[F[_]: Async: Parallel: ContextShift: Span: Metrics: Log, C, P, A, K](
+  def create[F[_]: Async: Parallel: Span: Metrics: Log, C, P, A, K](
       store: RSpaceStore[F],
       rholangEC: ExecutionContext
   )(
@@ -272,7 +272,7 @@ object RSpace {
   /**
     * Creates [[RSpace]] and [[ReplayRSpace]] from [[KeyValueStore]]'s.
     */
-  def createWithReplay[F[_]: Async: Parallel: ContextShift: Span: Metrics: Log, C, P, A, K](
+  def createWithReplay[F[_]: Async: Parallel: Span: Metrics: Log, C, P, A, K](
       store: RSpaceStore[F],
       rholangEC: ExecutionContext
   )(

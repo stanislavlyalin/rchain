@@ -29,8 +29,10 @@ import coop.rchain.rholang.interpreter.SystemProcesses.BlockData
 import coop.rchain.rholang.interpreter.compiler.Compiler
 import coop.rchain.rholang.interpreter.errors.InterpreterError
 import coop.rchain.shared.{Log, LogSource}
-import retry.{retryingOnFailures, RetryPolicies}
+import retry.{retryingOnFailures, RetryPolicies, Sleep}
 import cats.effect.Temporal
+
+import scala.concurrent.duration.FiniteDuration
 
 object InterpreterUtil {
 
@@ -48,7 +50,7 @@ object InterpreterUtil {
 
   // TODO: most of this function is legacy code, it should be refactored with separation of errors that are
   //  handled (with included data e.g. hash not equal) and fatal errors which should NOT be handled
-  def validateBlockCheckpoint[F[_]: Async: Temporal: RuntimeManager: BlockDagStorage: BlockStore: Log: Metrics: Span](
+  def validateBlockCheckpoint[F[_]: Async: RuntimeManager: BlockDagStorage: BlockStore: Log: Metrics: Span](
       block: BlockMessage
   ): F[(BlockMetadata, BlockProcessing[Boolean])] =
     for {
@@ -130,11 +132,11 @@ object InterpreterUtil {
       (bmd, result)
     }
 
-  def validateBlockCheckpointLegacy[F[_]: Async: Temporal: RuntimeManager: BlockDagStorage: BlockStore: Log: Metrics: Span](
+  def validateBlockCheckpointLegacy[F[_]: Async: RuntimeManager: BlockDagStorage: BlockStore: Log: Metrics: Span](
       block: BlockMessage
   ): F[BlockProcessing[Boolean]] = validateBlockCheckpoint(block).map(_._2)
 
-  private def replayBlock[F[_]: Sync: Temporal: RuntimeManager: BlockDagStorage: BlockStore: Log: Span](
+  private def replayBlock[F[_]: Async: RuntimeManager: BlockDagStorage: BlockStore: Log: Span](
       initialStateHash: StateHash,
       block: BlockMessage,
       rand: Blake2b512Random

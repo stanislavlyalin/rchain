@@ -24,6 +24,7 @@ import org.scalatest.matchers.should.Matchers
 
 import scala.concurrent.duration._
 import cats.effect.Ref
+import cats.effect.unsafe.implicits.global
 
 class CostAccountingReducerTest extends AnyFlatSpec with Matchers with TripleEqualsSupport {
 

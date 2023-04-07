@@ -1,5 +1,6 @@
 package coop.rchain.comm.rp
 
+import cats.effect.unsafe.implicits.global
 import cats.{catsInstancesForId => _, _}
 import coop.rchain.catscontrib.effect.implicits._
 import coop.rchain.catscontrib.ski._
@@ -15,7 +16,7 @@ import org.scalatest.funspec.AnyFunSpec
 import org.scalatest.matchers.should.Matchers
 
 import scala.concurrent.duration._
-import cats.effect.Ref
+import cats.effect.{IO, Ref}
 
 class ClearConnectionsSpec
     extends AnyFunSpec
@@ -27,10 +28,10 @@ class ClearConnectionsSpec
 
   val src: PeerNode      = peer("src")
   val networkId          = "test"
-  implicit val transport = new TransportLayerStub[Id]
-  implicit val log       = new Log.NOPLog[Id]
-  implicit val metric    = new Metrics.MetricsNOP[Id]
-  implicit val time      = new LogicalTime[Id]
+  implicit val transport = new TransportLayerStub[IO]
+  implicit val log       = new Log.NOPLog[IO]
+  implicit val metric    = new Metrics.MetricsNOP[IO]
+  implicit val time      = new LogicalTime[IO]
 
   override def beforeEach(): Unit = {
     transport.reset()
@@ -46,9 +47,9 @@ class ClearConnectionsSpec
         implicit val connections = mkConnections(peer("A"), peer("B"))
         implicit val rpconf      = conf(maxNumOfConnections = 5)
         // when
-        Connect.clearConnections[Id]
+        Connect.clearConnections[IO]
         // then
-        connections.get.size shouldBe 2
+        connections.get.unsafeRunSync().size shouldBe 2
         connections.get should contain(peer("A"))
         connections.get should contain(peer("B"))
       }
@@ -57,7 +58,7 @@ class ClearConnectionsSpec
         implicit val connections = mkConnections(peer("A"), peer("B"))
         implicit val rpconf      = conf(maxNumOfConnections = 5)
         // when
-        val cleared = Connect.clearConnections[Id]
+        val cleared = Connect.clearConnections[IO]
         // then
         cleared shouldBe 0
       }
@@ -70,7 +71,7 @@ class ClearConnectionsSpec
         implicit val rpconf      = conf(maxNumOfConnections = 5, numOfConnectionsPinged = 2)
 
         // when
-        Connect.clearConnections[Id]
+        Connect.clearConnections[IO]
         // then
         transport.requests.size shouldBe 2
         transport.requests.map(_.peer) should contain(peer("A"))
@@ -86,9 +87,9 @@ class ClearConnectionsSpec
           case _                   => alwaysSuccess
         })
         // when
-        Connect.clearConnections[Id]
+        Connect.clearConnections[IO]
         // then
-        connections.get.size shouldBe 3
+        connections.get.unsafeRunSync().size shouldBe 3
         connections.get should not contain peer("A")
         connections.get should contain(peer("B"))
         connections.get should contain(peer("C"))
@@ -104,9 +105,9 @@ class ClearConnectionsSpec
           case _                   => alwaysSuccess
         })
         // when
-        Connect.clearConnections[Id]
+        Connect.clearConnections[IO]
         // then
-        connections.get.size shouldBe 3
+        connections.get.unsafeRunSync().size shouldBe 3
         connections.get shouldEqual List(peer("D"), peer("B"), peer("C"))
       }
 
@@ -119,7 +120,7 @@ class ClearConnectionsSpec
           case _                   => alwaysSuccess
         })
         // when
-        val cleared = Connect.clearConnections[Id]
+        val cleared = Connect.clearConnections[IO]
         // then
         cleared shouldBe 1
       }
@@ -129,13 +130,13 @@ class ClearConnectionsSpec
   private def peer(name: String, host: String = "host"): PeerNode =
     PeerNode(NodeIdentifier(name.getBytes), Endpoint(host, 80, 80))
 
-  private def mkConnections(peers: PeerNode*): ConnectionsCell[Id] =
-    Ref.unsafe[Id, Connections](peers.toList)
+  private def mkConnections(peers: PeerNode*): ConnectionsCell[IO] =
+    Ref[IO].of(peers.toList).unsafeRunSync()
 
   private def conf(
       maxNumOfConnections: Int,
       numOfConnectionsPinged: Int = 5
-  ): RPConfAsk[Id] =
+  ): RPConfAsk[IO] =
     new ConstApplicativeAsk(
       RPConf(
         clearConnections = ClearConnectionsConf(numOfConnectionsPinged),

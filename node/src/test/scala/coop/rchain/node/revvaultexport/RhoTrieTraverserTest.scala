@@ -1,5 +1,6 @@
 package coop.rchain.node.revvaultexport
 
+import cats.effect.unsafe.implicits.global
 import cats.effect.{Async, IO}
 import coop.rchain.casper.genesis.contracts.{Registry, StandardDeploys}
 import coop.rchain.casper.helper.TestNode.Effect

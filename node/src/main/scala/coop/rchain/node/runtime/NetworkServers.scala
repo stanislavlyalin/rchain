@@ -1,6 +1,6 @@
 package coop.rchain.node.runtime
 
-import cats.effect.{Async, ConcurrentEffect, IO, Resource, Sync}
+import cats.effect.{Async, IO, Resource, Sync}
 import cats.syntax.all._
 import com.typesafe.config.Config
 import coop.rchain.casper.protocol.deploy.v1
@@ -25,7 +25,7 @@ import coop.rchain.node.{api, web}
 import coop.rchain.sdk.syntax.all._
 import coop.rchain.shared.Log
 import coop.rchain.shared.syntax._
-import fs2.concurrent.Queue
+import fs2.concurrent.Channel
 import io.grpc.{Metadata, Server}
 import kamon.Kamon
 import kamon.system.SystemMetrics
@@ -45,11 +45,11 @@ object NetworkServers {
     */
   // format: off
   def create[F[_]
-    /* Execution */   : AsyncEffect: Temporal: ContextShift
+    /* Execution */   : Async
     /* Comm */        : TransportLayer: NodeDiscovery: KademliaStore: RPConfAsk: ConnectionsCell
     /* Diagnostics */ : Log: Metrics] // format: on
   (
-      routingMessageQueue: Queue[F, RoutingMessage],
+      routingMessageQueue: Channel[F, RoutingMessage],
       grpcServices: GrpcServices[F],
       webApi: WebApi[F],
       adminWebApi: AdminWebApi[F],
@@ -90,7 +90,7 @@ object NetworkServers {
     } yield ()
   }
 
-  def internalServer[F[_]: Async: AsyncEffect: Log](
+  def internalServer[F[_]: Async: Log](
       nodeConf: NodeConf,
       replService: ReplFs2Grpc[F, Metadata],
       deployService: DeployServiceFs2Grpc[F, Metadata],
@@ -113,7 +113,7 @@ object NetworkServers {
       nodeConf.apiServer.maxConnectionAgeGrace
     )
 
-  def externalServer[F[_]: Async: AsyncEffect: Log](
+  def externalServer[F[_]: Async: Log](
       nodeConf: NodeConf,
       deployService: v1.DeployServiceFs2Grpc[F, Metadata],
       grpcEC: ExecutionContext
@@ -132,9 +132,9 @@ object NetworkServers {
       nodeConf.apiServer.maxConnectionAgeGrace
     )
 
-  def protocolServer[F[_]: Async: AsyncEffect: TransportLayer: ConnectionsCell: RPConfAsk: Log: Metrics: Temporal](
+  def protocolServer[F[_]: Async: TransportLayer: ConnectionsCell: RPConfAsk: Log: Metrics: Temporal](
       nodeConf: NodeConf,
-      routingMessageQueue: Queue[F, RoutingMessage]
+      routingMessageQueue: Channel[F, RoutingMessage]
   ): Resource[F, Unit] = {
     val server = GrpcTransportServer.acquireServer[F](
       nodeConf.protocolServer.networkId,
@@ -148,7 +148,7 @@ object NetworkServers {
 
     server.resource(
       HandleMessages.handle[F](_, routingMessageQueue),
-      blob => routingMessageQueue.enqueue1(RoutingMessage(blob.sender, blob.packet))
+      blob => routingMessageQueue.send(RoutingMessage(blob.sender, blob.packet)).void
     )
   }
 
@@ -164,12 +164,12 @@ object NetworkServers {
       grpcEC
     )
 
-  def webApiServer[F[_]: ContextShift: AsyncEffect: Temporal: NodeDiscovery: ConnectionsCell: RPConfAsk: Log](
+  def webApiServer[F[_]: Async: NodeDiscovery: ConnectionsCell: RPConfAsk: Log](
       nodeConf: NodeConf,
       webApi: WebApi[F],
       reportingRoutes: ReportingHttpRoutes[F],
       prometheusReporter: NewPrometheusReporter
-  ): Resource[F, server.Server[F]] =
+  ): Resource[F, server.Server] =
     web.acquireHttpServer[F](
       nodeConf.apiServer.enableReporting,
       nodeConf.apiServer.host,
@@ -180,12 +180,12 @@ object NetworkServers {
       reportingRoutes
     )
 
-  def adminWebApiServer[F[_]: ContextShift: AsyncEffect: Temporal: NodeDiscovery: ConnectionsCell: RPConfAsk: Log](
+  def adminWebApiServer[F[_]: Async: NodeDiscovery: ConnectionsCell: RPConfAsk: Log](
       nodeConf: NodeConf,
       webApi: WebApi[F],
       adminWebApi: AdminWebApi[F],
       reportingRoutes: ReportingHttpRoutes[F]
-  ): Resource[F, server.Server[F]] =
+  ): Resource[F, server.Server] =
     web.acquireAdminHttpServer[F](
       nodeConf.apiServer.host,
       nodeConf.apiServer.portAdminHttp,
@@ -209,6 +209,7 @@ object NetworkServers {
       if (nodeConf.metrics.sigar) SystemMetrics.startCollecting()
     }
 
+    import scala.concurrent.ExecutionContext.Implicits.global
     // TODO: check new version of Kamon if supports custom effect
     def stop: F[Unit] = Async[F].async_ { cb =>
       Kamon.stopAllReporters().onComplete {

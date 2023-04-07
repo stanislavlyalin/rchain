@@ -1188,5 +1188,5 @@ class InMemoryHotStoreStorageActionsTests
     with TaskTests[String, Pattern, Nothing, String, StringsCaptor]
     with StorageActionsTests[IO]
     with StorageTestsBase[IO, String, Pattern, String, StringsCaptor] {
-  implicit val parF: Parallel[IO] = IO.ioParallel
+  implicit val parF: Parallel[IO] = IO.parallelForIO
 }

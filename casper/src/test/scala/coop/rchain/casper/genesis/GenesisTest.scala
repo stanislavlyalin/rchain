@@ -1,6 +1,7 @@
 package coop.rchain.casper.genesis
 
 import cats.Parallel
+import cats.effect.unsafe.implicits.global
 import cats.effect.{Async, IO, Sync}
 import cats.syntax.all._
 import coop.rchain.blockstorage.BlockStore
@@ -238,6 +239,7 @@ object GenesisTest {
   )(
       implicit genesisPath: Path,
       runtimeManager: RuntimeManager[IO],
+      c: Async[IO],
       log: LogStub[IO]
   ): IO[BlockMessage] =
     for {
@@ -274,7 +276,7 @@ object GenesisTest {
                      )
     } yield genesisBlock
 
-  def withGenResources[F[_]: Async: ContextShift: Parallel](
+  def withGenResources[F[_]: Async: Parallel](
       body: (RuntimeManager[F], Path, LogStub[F]) => F[Unit]
   ): F[Unit] = {
     val storePath                        = storageLocation

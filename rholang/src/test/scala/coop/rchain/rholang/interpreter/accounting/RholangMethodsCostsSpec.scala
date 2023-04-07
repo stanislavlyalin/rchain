@@ -1,6 +1,7 @@
 package coop.rchain.rholang.interpreter.accounting
 
 import cats.effect.IO
+import cats.effect.unsafe.implicits.global
 import com.google.protobuf.ByteString
 import coop.rchain.metrics
 import coop.rchain.metrics.{Metrics, NoopSpan, Span}

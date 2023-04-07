@@ -1,6 +1,7 @@
 package coop.rchain.comm.discovery
 
 import cats.Applicative
+import cats.effect.unsafe.implicits.global
 import cats.effect.{IO, Resource, Sync}
 import cats.mtl.DefaultApplicativeAsk
 import coop.rchain.comm._

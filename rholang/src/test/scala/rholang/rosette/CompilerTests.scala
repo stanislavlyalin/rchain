@@ -1,6 +1,7 @@
 package rholang.rosette
 
 import cats.effect.IO
+import cats.effect.unsafe.implicits.global
 import coop.rchain.metrics
 import coop.rchain.metrics.{Metrics, NoopSpan, Span}
 import coop.rchain.rholang.Resources.mkRuntime

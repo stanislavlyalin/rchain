@@ -1,8 +1,8 @@
 package coop.rchain.shared
 
 import cats._
+import cats.effect.IO
 import cats.syntax.all._
-
 import org.scalatest.funspec.AnyFunSpec
 import org.scalatest.matchers.should.Matchers
 import org.scalatestplus.scalacheck.ScalaCheckDrivenPropertyChecks
@@ -15,7 +15,7 @@ class StreamTSpec extends AnyFunSpec with Matchers with ScalaCheckDrivenProperty
   describe("StreamT") {
     it("should be able to be constructed from lists") {
       forAll { (list: List[Int]) =>
-        val stream: StreamT[Id, Int] = StreamT.fromList[Id, Int](list)
+        val stream: StreamT[IO, Int] = StreamT.fromList[IO, Int](list.pure[IO])
 
         stream.toList[Int] shouldBe list
       }
@@ -24,7 +24,7 @@ class StreamTSpec extends AnyFunSpec with Matchers with ScalaCheckDrivenProperty
     it("should correctly compute heads") {
       forAll { (list: List[Int]) =>
         whenever(list.nonEmpty) {
-          val stream: StreamT[Id, Int] = StreamT.fromList[Id, Int](list)
+          val stream: StreamT[IO, Int] = StreamT.fromList[IO, Int](list.pure[IO])
 
           stream.head[Int](mErrId) shouldBe list.head
         }
@@ -34,7 +34,7 @@ class StreamTSpec extends AnyFunSpec with Matchers with ScalaCheckDrivenProperty
     it("should correctly compute tails") {
       forAll { (list: List[Int]) =>
         whenever(list.nonEmpty) {
-          val stream: StreamT[Id, Int] = StreamT.fromList[Id, Int](list)
+          val stream: StreamT[IO, Int] = StreamT.fromList[IO, Int](list.pure[IO])
 
           stream.tail(mErrId).toList[Int] shouldBe list.tail
         }
@@ -43,8 +43,8 @@ class StreamTSpec extends AnyFunSpec with Matchers with ScalaCheckDrivenProperty
 
     it("should be able to zip with other StreamTs") {
       forAll { (listA: List[Int], listB: List[String]) =>
-        val streamA = StreamT.fromList[Id, Int](listA)
-        val streamB = StreamT.fromList[Id, String](listB)
+        val streamA = StreamT.fromList[IO, Int](listA.pure[IO])
+        val streamB = StreamT.fromList[IO, String](listB.pure[IO])
 
         listA.zip(listB) shouldBe streamA.zip(streamB).toList
       }
@@ -52,7 +52,7 @@ class StreamTSpec extends AnyFunSpec with Matchers with ScalaCheckDrivenProperty
 
     it("should allow taking a finite number of terms") {
       forAll { (list: List[Int], n: Int) =>
-        val stream: StreamT[Id, Int] = StreamT.fromList[Id, Int](list)
+        val stream: StreamT[IO, Int] = StreamT.fromList[IO, Int](list.pure[IO])
 
         stream.take(n).toList[Int] shouldBe list.take(n)
       }
@@ -63,7 +63,7 @@ class StreamTSpec extends AnyFunSpec with Matchers with ScalaCheckDrivenProperty
       "should allow taking the longest prefix of this StreamT whose elements satisfy the predicate"
     ) {
       forAll { list: List[Int] =>
-        val stream: StreamT[Id, Int] = StreamT.fromList[Id, Int](list)
+        val stream: StreamT[IO, Int] = StreamT.fromList[IO, Int](list.pure[IO])
 
         stream.takeWhile(_ < 100).toList[Int] shouldBe list.takeWhile(_ < 100)
       }
@@ -72,7 +72,7 @@ class StreamTSpec extends AnyFunSpec with Matchers with ScalaCheckDrivenProperty
 
     it("should allow dropping a finite number of terms") {
       forAll { (list: List[Int], n: Int) =>
-        val stream: StreamT[Id, Int] = StreamT.fromList[Id, Int](list)
+        val stream: StreamT[IO, Int] = StreamT.fromList[IO, Int](list.pure[IO])
 
         stream.drop(n).toList[Int] shouldBe list.drop(n)
       }
@@ -81,7 +81,7 @@ class StreamTSpec extends AnyFunSpec with Matchers with ScalaCheckDrivenProperty
 
     it("should allow dropping a finite number of terms until a term doesn't satisfy the predicate") {
       forAll { list: List[Int] =>
-        val stream: StreamT[Id, Int] = StreamT.fromList[Id, Int](list)
+        val stream: StreamT[IO, Int] = StreamT.fromList[IO, Int](list.pure[IO])
 
         stream.dropWhile(_ < 100).toList[Int] shouldBe list.dropWhile(_ < 100)
       }
@@ -89,7 +89,7 @@ class StreamTSpec extends AnyFunSpec with Matchers with ScalaCheckDrivenProperty
 
     it("should find elements properly in") {
       forAll { (list: List[Int]) =>
-        val stream: StreamT[Id, Int] = StreamT.fromList[Id, Int](list)
+        val stream: StreamT[IO, Int] = StreamT.fromList[IO, Int](list.pure[IO])
 
         stream.find[Int](_ % 2 == 0) shouldBe list.find(_ % 2 == 0)
       }
@@ -97,7 +97,7 @@ class StreamTSpec extends AnyFunSpec with Matchers with ScalaCheckDrivenProperty
 
     it("should foldLeft properly in") {
       forAll { (list: List[Int]) =>
-        val stream: StreamT[Id, Int] = StreamT.fromList[Id, Int](list)
+        val stream: StreamT[IO, Int] = StreamT.fromList[IO, Int](list.pure[IO])
 
         stream.foldLeft[Int](0)(_ + _) shouldBe list.sum
       }
@@ -105,7 +105,7 @@ class StreamTSpec extends AnyFunSpec with Matchers with ScalaCheckDrivenProperty
 
     it("should map properly in") {
       forAll { (list: List[Int]) =>
-        val stream: StreamT[Id, Int] = StreamT.fromList[Id, Int](list)
+        val stream: StreamT[IO, Int] = StreamT.fromList[IO, Int](list.pure[IO])
 
         stream.map(_ * 2).toList[Int] shouldBe list.map(_ * 2)
       }
@@ -113,15 +113,15 @@ class StreamTSpec extends AnyFunSpec with Matchers with ScalaCheckDrivenProperty
 
     it("should flatMap properly in") {
       forAll { (list: List[Int]) =>
-        val stream: StreamT[Id, Int] = StreamT.fromList[Id, Int](list)
+        val stream: StreamT[IO, Int] = StreamT.fromList[IO, Int](list.pure[IO])
 
         stream
-          .flatMap(i => StreamT.fromList[Id, Int](List(i + 1, i + 2, i + 3)))
+          .flatMap(i => StreamT.fromList[IO, Int](List(i + 1, i + 2, i + 3).pure[IO]))
           .toList[Int] shouldBe list.flatMap(i => List(i + 1, i + 2, i + 3))
       }
     }
     it("should be able lazily construct infinite sequences") {
-      lazy val fibs: StreamT[Id, Long] =
+      lazy val fibs: StreamT[IO, Long] =
         StreamT.cons(
           0L,
           Eval.now(pure(StreamT.cons(1L, Eval.later(pure(fibs.zip(fibs.tail(mErrId)).map {
@@ -133,11 +133,11 @@ class StreamTSpec extends AnyFunSpec with Matchers with ScalaCheckDrivenProperty
     }
   }
 
-  private def pure[A](value: A): Id[A] = Applicative[Id].pure(value)
+  private def pure[A](value: A): IO[A] = Applicative[IO].pure(value)
 }
 
 object StreamTSpec {
-  val mErrId = unsafeMErr[Id]
+  val mErrId = unsafeMErr[IO]
 
   def unsafeMErr[F[_]: Monad]: MonadError[F, Throwable] =
     new MonadError[F, Throwable] {

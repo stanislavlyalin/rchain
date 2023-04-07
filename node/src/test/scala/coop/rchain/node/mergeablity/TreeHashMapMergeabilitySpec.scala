@@ -1,7 +1,7 @@
 package coop.rchain.node.mergeablity
 
 import cats.effect.{IO, Sync}
-import cats.implicits.catsSyntaxApplicative
+import cats.effect.unsafe.implicits.global
 import cats.syntax.all._
 import com.google.protobuf.ByteString
 import coop.rchain.casper.genesis.contracts.{Registry, StandardDeploys}

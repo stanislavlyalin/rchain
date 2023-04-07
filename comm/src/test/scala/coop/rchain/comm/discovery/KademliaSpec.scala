@@ -1,12 +1,11 @@
 package coop.rchain.comm.discovery
 
 import scala.collection.mutable
-
 import cats.Id
-
+import cats.syntax.all._
+import cats.effect.IO
 import coop.rchain.catscontrib.effect.implicits._
 import coop.rchain.comm._
-
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.funspec.AnyFunSpec
 import org.scalatest.matchers.should.Matchers
@@ -27,7 +26,7 @@ class KademliaSpec extends AnyFunSpec with Matchers with BeforeAndAfterEach {
       it("should add it to a bucket according to its distance") {
         // given
         implicit val ping: KademliaRPCMock = pingOk
-        val table                          = PeerTable[PeerNode, Id](local.key, 3)
+        val table                          = PeerTable[PeerNode, IO](local.key, 3)
         table.distance(peer0) shouldBe DISTANCE_6
         // when
         table.updateLastSeen(peer0)
@@ -38,7 +37,7 @@ class KademliaSpec extends AnyFunSpec with Matchers with BeforeAndAfterEach {
       it("should not ping the peer") {
         // given
         implicit val ping: KademliaRPCMock = pingOk
-        val table                          = PeerTable[PeerNode, Id](local.key, 3)
+        val table                          = PeerTable[PeerNode, IO](local.key, 3)
         // when
         table.updateLastSeen(peer0)
         // then
@@ -50,7 +49,7 @@ class KademliaSpec extends AnyFunSpec with Matchers with BeforeAndAfterEach {
       it("should replace peer with new entry (the one with new IP)") {
         // given
         implicit val ping: KademliaRPCMock = pingOk
-        val table                          = PeerTable[PeerNode, Id](local.key, 3)
+        val table                          = PeerTable[PeerNode, IO](local.key, 3)
         table.updateLastSeen(peer1)
         // when
         val newPeer1 = peer1.copy(endpoint = Endpoint("otherIP", 0, 0))
@@ -62,7 +61,7 @@ class KademliaSpec extends AnyFunSpec with Matchers with BeforeAndAfterEach {
       it("should move peer to the end of the bucket (meaning it's been seen lately)") {
         // given
         implicit val ping: KademliaRPCMock = pingOk
-        val table                          = PeerTable[PeerNode, Id](local.key, 3)
+        val table                          = PeerTable[PeerNode, IO](local.key, 3)
         table.updateLastSeen(peer2)
         table.updateLastSeen(peer1)
         table.updateLastSeen(peer3)
@@ -79,7 +78,7 @@ class KademliaSpec extends AnyFunSpec with Matchers with BeforeAndAfterEach {
       it("should add peer to the end of the bucket (meaning it's been seen lately)") {
         // given
         implicit val ping: KademliaRPCMock = pingOk
-        val table                          = PeerTable[PeerNode, Id](local.key, 3)
+        val table                          = PeerTable[PeerNode, IO](local.key, 3)
         table.updateLastSeen(peer2)
         table.updateLastSeen(peer3)
         bucketEntriesAt(DISTANCE_4, table) shouldEqual Seq(peer2, peer3)
@@ -92,7 +91,7 @@ class KademliaSpec extends AnyFunSpec with Matchers with BeforeAndAfterEach {
       it("no peers should be pinged") {
         // given
         implicit val ping: KademliaRPCMock = pingOk
-        val table                          = PeerTable[PeerNode, Id](local.key, 3)
+        val table                          = PeerTable[PeerNode, IO](local.key, 3)
         table.updateLastSeen(peer2)
         table.updateLastSeen(peer3)
         bucketEntriesAt(DISTANCE_4, table) shouldEqual Seq(peer2, peer3)
@@ -107,7 +106,7 @@ class KademliaSpec extends AnyFunSpec with Matchers with BeforeAndAfterEach {
       it("should ping the oldest peer to check if it responds") {
         // given
         implicit val ping: KademliaRPCMock = pingOk
-        val table                          = PeerTable[PeerNode, Id](local.key, 3)
+        val table                          = PeerTable[PeerNode, IO](local.key, 3)
         thatBucket4IsFull(table)
         // when
         table.updateLastSeen(peer4)
@@ -119,7 +118,7 @@ class KademliaSpec extends AnyFunSpec with Matchers with BeforeAndAfterEach {
         it("should drop the new peer") {
           // given
           implicit val ping: KademliaRPCMock = pingOk
-          val table                          = PeerTable[PeerNode, Id](local.key, 3)
+          val table                          = PeerTable[PeerNode, IO](local.key, 3)
           thatBucket4IsFull(table)
           // when
           table.updateLastSeen(peer4)
@@ -131,7 +130,7 @@ class KademliaSpec extends AnyFunSpec with Matchers with BeforeAndAfterEach {
         it("should add the new peer and drop the oldest one") {
           // given
           implicit val ping: KademliaRPCMock = pingFail
-          val table                          = PeerTable[PeerNode, Id](local.key, 3)
+          val table                          = PeerTable[PeerNode, IO](local.key, 3)
           thatBucket4IsFull(table)
           // when
           table.updateLastSeen(peer4)
@@ -142,7 +141,7 @@ class KademliaSpec extends AnyFunSpec with Matchers with BeforeAndAfterEach {
     }
   }
 
-  private def thatBucket4IsFull(table: PeerTable[PeerNode, Id]): Unit = {
+  private def thatBucket4IsFull(table: PeerTable[PeerNode, IO]): Unit = {
     table.updateLastSeen(peer1)
     table.updateLastSeen(peer2)
     table.updateLastSeen(peer3)
@@ -150,26 +149,26 @@ class KademliaSpec extends AnyFunSpec with Matchers with BeforeAndAfterEach {
 
   private def bucketEntriesAt(
       distance: Option[Int],
-      table: PeerTable[PeerNode, Id]
+      table: PeerTable[PeerNode, IO]
   ): Seq[PeerNode] =
     distance.map(d => table.table(d).map(_.entry)).getOrElse(Seq.empty[PeerNode])
 
   private val pingOk: KademliaRPCMock   = new KademliaRPCMock(returns = true)
   private val pingFail: KademliaRPCMock = new KademliaRPCMock(returns = false)
 
-  private class KademliaRPCMock(returns: Boolean) extends KademliaRPC[Id] {
+  private class KademliaRPCMock(returns: Boolean) extends KademliaRPC[IO] {
     val pingedPeers: mutable.MutableList[PeerNode] = mutable.MutableList.empty[PeerNode]
 
-    def ping(peer: PeerNode): Boolean = {
+    def ping(peer: PeerNode): IO[Boolean] = {
       pingedPeers += peer
-      returns
+      returns.pure[IO]
     }
-    def lookup(key: Seq[Byte], peer: PeerNode): Seq[PeerNode] = Seq.empty[PeerNode]
+    def lookup(key: Seq[Byte], peer: PeerNode): IO[Seq[PeerNode]] = Seq.empty[PeerNode].pure[IO]
     def receive(
-        pingHandler: PeerNode => Id[Unit],
-        lookupHandler: (PeerNode, Array[Byte]) => Id[Seq[PeerNode]]
-    ): Id[Unit]              = ()
-    def shutdown(): Id[Unit] = ()
+        pingHandler: PeerNode => IO[Unit],
+        lookupHandler: (PeerNode, Array[Byte]) => IO[Seq[PeerNode]]
+    ): IO[Unit]              = ().pure[IO]
+    def shutdown(): IO[Unit] = ().pure[IO]
   }
 
   private def createPeer(id: String): PeerNode = {

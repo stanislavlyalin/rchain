@@ -15,7 +15,7 @@ import org.scalatest.funspec.AnyFunSpec
 import org.scalatest.matchers.should.Matchers
 
 import scala.concurrent.duration.{FiniteDuration, MILLISECONDS}
-import cats.effect.Ref
+import cats.effect.{IO, Ref}
 
 class ConnectSpec extends AnyFunSpec with Matchers with BeforeAndAfterEach with AppendedClues {
 
@@ -24,7 +24,7 @@ class ConnectSpec extends AnyFunSpec with Matchers with BeforeAndAfterEach with 
   val remote: PeerNode               = peerNode("remote", 40401)
   val networkId                      = "test"
 
-  type Effect[A] = CommErrT[Id, A]
+  type Effect[A] = CommErrT[IO, A]
 
   implicit val logEff            = new Log.NOPLog[Effect]
   implicit val timeEff           = new LogicalTime[Effect]

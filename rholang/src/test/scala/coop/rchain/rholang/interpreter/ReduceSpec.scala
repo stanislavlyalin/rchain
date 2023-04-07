@@ -1,6 +1,7 @@
 package coop.rchain.rholang.interpreter
 
 import cats.effect.IO
+import cats.effect.unsafe.implicits.global
 import cats.syntax.all._
 import com.google.protobuf.ByteString
 import coop.rchain.crypto.hash.Blake2b512Random

@@ -21,8 +21,7 @@ object Main {
       LoggerFactory.getLogger(getClass).error("Unhandled exception in thread " + thread.getName, ex)
     })
 
-    // Main scheduler for all CPU bounded tasks and ContextShift
-    import RChainScheduler._
+    import cats.effect.unsafe.implicits.global
 
     implicit val console: ConsoleIO[IO] = NodeMain.consoleIO
     implicit val log: Log[IO]           = effects.log

@@ -13,7 +13,7 @@ import coop.rchain.shared.RChainScheduler
 import monix.execution.atomic.AtomicAny
 import scodec.Codec
 
-import scala.concurrent.ExecutionContext.Implicits.global
+import cats.effect.unsafe.implicits.global
 
 trait StorageExamplesTests[F[_]]
     extends StorageTestsBase[F, Channel, Pattern, Entry, EntriesCaptor] {
@@ -289,5 +289,5 @@ class InMemoryHotStoreStorageExamplesTests
     extends InMemoryHotStoreStorageExamplesTestsBase[IO]
     with TaskTests[Channel, Pattern, Entry, Entry, EntriesCaptor]
     with StorageExamplesTests[IO] {
-  implicit val parF: Parallel[IO] = IO.ioParallel
+  implicit val parF: Parallel[IO] = IO.parallelForIO
 }

@@ -1,5 +1,6 @@
 package coop.rchain.casper.helper
 
+import cats.effect.unsafe.implicits.global
 import cats.effect.{Async, IO, Sync}
 import cats.syntax.all._
 import coop.rchain.casper.genesis.Genesis

@@ -136,7 +136,7 @@ object BlockRetriever {
           admitHashReason: AdmitHashReason
       ): F[AdmitHashResult] =
         for {
-          now <- Temporal[F].clock.realTime(TimeUnit.MILLISECONDS)
+          now <- Temporal[F].realTime.map(_.toMillis)
           result <- RequestedBlocks[F]
                      .modify[AdmitHashResult] { state =>
                        val unknownHash = !state.contains(hash)
@@ -229,7 +229,7 @@ object BlockRetriever {
                         s"Remain waiting: ${waitingListTail.map(_.endpoint.host).mkString(", ")}."
                     )
                 _  <- CommUtil[F].requestForBlock(nextPeer, hash)
-                ts <- Temporal[F].clock.realTime(TimeUnit.MILLISECONDS)
+                ts <- Temporal[F].realTime.map(_.toMillis)
                 _ <- RequestedBlocks.put(
                       hash,
                       requested.copy(
@@ -260,8 +260,8 @@ object BlockRetriever {
           _ <- state.keySet.toList.traverse(hash => {
                 val requested = state(hash)
                 for {
-                  expired <- Temporal[F].clock
-                              .realTime(TimeUnit.MILLISECONDS)
+                  expired <- Temporal[F].realTime
+                              .map(_.toMillis)
                               .map(_ - requested.timestamp > ageThreshold.toMillis)
                   _ <- Log[F]
                         .debug(

@@ -21,6 +21,7 @@ import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.OptionValues
 import scodec.bits.ByteVector
+import cats.effect.unsafe.implicits.global
 
 import java.nio.ByteBuffer
 import scala.collection.SortedSet

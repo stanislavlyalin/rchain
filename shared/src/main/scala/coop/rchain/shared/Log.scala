@@ -99,6 +99,4 @@ sealed abstract class LogInstances {
     def error(msg: => String, cause: Throwable)(implicit ev: LogSource): F[Unit] =
       Sync[F].delay(Logger(ev.clazz).error(msg, cause))
   }
-
-  val logId: Log[Id] = log
 }

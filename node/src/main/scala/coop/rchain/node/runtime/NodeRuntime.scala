@@ -1,7 +1,7 @@
 package coop.rchain.node.runtime
 
 import cats.Parallel
-import cats.effect.{AsyncEffect, Resource, Sync}
+import cats.effect.{Async, Ref, Resource, Sync, Temporal}
 import cats.mtl._
 import cats.syntax.all._
 import com.typesafe.config.Config
@@ -75,7 +75,7 @@ object NodeRuntime {
     } yield ()
 }
 
-class NodeRuntime[F[_]: AsyncEffect: Parallel: Temporal: ContextShift: LocalEnvironment: Log] private[node] (
+class NodeRuntime[F[_]: Parallel: Async: LocalEnvironment: Log] private[node] (
     nodeConf: NodeConf,
     kamonConf: Config,
     id: NodeIdentifier

@@ -20,6 +20,7 @@ import scala.collection.SortedSet
 import scala.concurrent.duration._
 import scala.util.Random
 import cats.effect.Ref
+import cats.effect.unsafe.implicits.global
 
 trait HotStoreSpec[F[_]] extends AnyFlatSpec with Matchers with ScalaCheckDrivenPropertyChecks {
 
@@ -1118,7 +1119,7 @@ trait InMemHotStoreSpec extends HotStoreSpec[IO] {
   import coop.rchain.shared.RChainScheduler._
   protected type F[A] = IO[A]
   implicit override val S: Sync[F]      = implicitly[Async[IO]]
-  implicit override val P: Parallel[IO] = IO.ioParallel
+  implicit override val P: Parallel[IO] = IO.parallelForIO
   def C(
       c: HotStoreState[String, Pattern, String, StringsCaptor] = HotStoreState()
   ): F[Ref[F, HotStoreState[String, Pattern, String, StringsCaptor]]]

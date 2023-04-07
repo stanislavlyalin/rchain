@@ -6,7 +6,7 @@ import coop.rchain.comm.PeerNode
 import coop.rchain.comm.transport.PacketOps._
 import coop.rchain.shared.Log
 import fs2.Stream
-import fs2.concurrent.Queue
+import fs2.concurrent.Channel
 
 import scala.collection.concurrent.TrieMap
 
@@ -16,7 +16,7 @@ class StreamObservableClass[F[_]: Async: Log](
     peer: PeerNode,
     bufferSize: Int,
     cache: TrieMap[String, Array[Byte]],
-    private val subject: Queue[F, StreamMsgId]
+    private val subject: Channel[F, StreamMsgId]
 ) {
 
   def enque(blob: Blob): F[Unit] = {
@@ -51,8 +51,8 @@ object StreamObservable {
       bufferSize: Int,
       cache: TrieMap[String, Array[Byte]]
   ): F[StreamObservable[F]] =
-    Queue.bounded[F, StreamMsgId](bufferSize).map { q =>
+    Channel.bounded[F, StreamMsgId](bufferSize).map { q =>
       val x = new StreamObservableClass(peer, bufferSize, cache, q)
-      (x.enque, q.dequeueChunk(1))
+      (x.enque, q.stream)
     }
 }

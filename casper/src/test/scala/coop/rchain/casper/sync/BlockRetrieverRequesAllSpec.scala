@@ -1,6 +1,6 @@
 package coop.rchain.casper.sync
 
-import cats.effect.IO
+import cats.effect.{Clock, IO, Ref}
 import com.google.protobuf.ByteString
 import coop.rchain.casper.blocks.BlockRetriever
 import coop.rchain.casper.blocks.BlockRetriever.{RequestState, RequestedBlocks}
@@ -20,9 +20,8 @@ import org.scalatest._
 import org.scalatest.funspec.AnyFunSpec
 import org.scalatest.matchers.should.Matchers
 
-import java.util.concurrent.TimeUnit
 import scala.concurrent.duration._
-import cats.effect.Ref
+import cats.effect.unsafe.implicits.global
 
 class BlockRetrieverRequestAllSpec extends AnyFunSpec with BeforeAndAfterEach with Matchers {
 
@@ -74,7 +73,7 @@ class BlockRetrieverRequestAllSpec extends AnyFunSpec with BeforeAndAfterEach wi
       describe("if block request is still within a timeout") {
         it("should keep the request not touch") {
           val requested =
-            RequestState(timestamp = timer.clock.realTime(TimeUnit.MILLISECONDS).unsafeRunSync)
+            RequestState(timestamp = Clock[IO].realTime.map(_.toMillis).unsafeRunSync)
           currentRequests.set(Map(hash -> requested)).unsafeRunSync
           // when
           blockRetriever.requestAll(timeout).unsafeRunSync
@@ -120,9 +119,7 @@ class BlockRetrieverRequestAllSpec extends AnyFunSpec with BeforeAndAfterEach wi
           }
           it("timestamp is reset") {
             val waitingList = List(peerNode("waiting1"), peerNode("waiting2"))
-            val initTime = timer.clock
-              .realTime(TimeUnit.MILLISECONDS)
-              .unsafeRunSync
+            val initTime    = Clock[IO].realTime.map(_.toMillis).unsafeRunSync
             val requested = RequestState(
               timestamp = initTime - timeout.toMillis - 1,
               peers = Set(peerNode("peer")),

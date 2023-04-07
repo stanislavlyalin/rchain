@@ -1,6 +1,7 @@
 package coop.rchain.node.mergeablity
 
 import cats.Monoid
+import cats.effect.unsafe.implicits.global
 import cats.effect.{IO, Sync}
 import cats.syntax.all._
 import coop.rchain.casper.helper.TestRhoRuntime.rhoRuntimeEff
@@ -258,7 +259,6 @@ trait BasicMergeabilityRules extends ComputeMerge {
     implicit val noopSpan: Span[IO]      = NoopSpan[IO]()
     implicit val logger: Log[IO]         = Log.log[IO]
     val baseDeployRand                   = Blake2b512Random.defaultRandom
-    import coop.rchain.shared.RChainScheduler._
     computeMergeCase[IO](
       baseDeployRand,
       Seq(baseDeploy),

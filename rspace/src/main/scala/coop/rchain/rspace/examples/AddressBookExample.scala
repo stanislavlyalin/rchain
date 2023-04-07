@@ -1,7 +1,9 @@
 package coop.rchain.rspace.examples
 
+import cats.effect.kernel.Concurrent
+import cats.effect.unsafe.implicits.global
 import cats.effect.{Async, IO}
-import cats.{Applicative, Id}
+import cats.Applicative
 import coop.rchain.metrics.{Metrics, NoopSpan, Span}
 import coop.rchain.rspace.syntax.rspaceSyntaxKeyValueStoreManager
 import coop.rchain.rspace.util.{runKs, unpackOption, unpackSeq}
@@ -80,14 +82,6 @@ object AddressBookExample {
   }
 
   object implicits {
-
-    implicit val concurrentF: Async[Id] = coop.rchain.catscontrib.effect.implicits.concurrentId
-
-    implicit val contextShiftId: ContextShift[Id] =
-      new ContextShift[Id] {
-        def shift: Id[Unit]                                   = ???
-        def evalOn[A](ec: ExecutionContext)(fa: Id[A]): Id[A] = fa
-      }
 
     /* Now I will troll Greg... */
 
@@ -175,14 +169,14 @@ object AddressBookExample {
   // Let's define some Entries
   val alice = Entry(
     name = Name("Alice", "Lincoln"),
-    address = Address("777 Ford St.", "Crystal Lake", "Idaho", "223322"),
+    address = Address("777 Ford St.", "Crystal Lake", "IOaho", "223322"),
     email = "alicel@ringworld.net",
     phone = "787-555-1212"
   )
 
   val bob = Entry(
     name = Name("Bob", "Lahblah"),
-    address = Address("1000 Main St", "Crystal Lake", "Idaho", "223322"),
+    address = Address("1000 Main St", "Crystal Lake", "IOaho", "223322"),
     email = "blablah@tenex.net",
     phone = "698-555-1212"
   )
@@ -195,14 +189,15 @@ object AddressBookExample {
   )
 
   def exampleOne(): Unit = {
-    implicit val log: Log[Id]          = Log.log
-    implicit val metricsF: Metrics[Id] = new Metrics.MetricsNOP[Id]()
-    implicit val spanF: Span[Id]       = NoopSpan[Id]()
-    implicit val keyValueStoreManager  = InMemoryStoreManager[Id]
+    implicit val log: Log[IO]          = Log.log
+    implicit val metricsF: Metrics[IO] = new Metrics.MetricsNOP[IO]()
+    implicit val spanF: Span[IO]       = NoopSpan[IO]()
+    implicit val keyValueStoreManager  = InMemoryStoreManager[IO]
 
     // Let's define our store
     val store = keyValueStoreManager.rSpaceStores
-    val space = RSpace.create[Id, Channel, Pattern, Entry, Printer](store, rholangEC)
+    val space =
+      RSpace.create[IO, Channel, Pattern, Entry, Printer](store.unsafeRunSync()).unsafeRunSync()
 
     Console.printf("\nExample One: Let's consume and then produce...\n")
 
@@ -213,13 +208,14 @@ object AddressBookExample {
           Seq(CityMatch(city = "Crystal Lake")),
           new Printer,
           persist = true
-        ) // it should be fine to do that -- type of left side is Nothing (no invalid states)
+        )
+        .unsafeRunSync() // it should be fine to do that -- type of left sIOe is Nothing (no invalIO states)
 
     assert(cres.isEmpty)
 
-    val pres1 = space.produce(Channel("friends"), alice, persist = false)
-    val pres2 = space.produce(Channel("friends"), bob, persist = false)
-    val pres3 = space.produce(Channel("friends"), carol, persist = false)
+    val pres1 = space.produce(Channel("friends"), alice, persist = false).unsafeRunSync()
+    val pres2 = space.produce(Channel("friends"), bob, persist = false).unsafeRunSync()
+    val pres3 = space.produce(Channel("friends"), carol, persist = false).unsafeRunSync()
 
     assert(pres1.nonEmpty)
     assert(pres2.nonEmpty)
@@ -230,20 +226,21 @@ object AddressBookExample {
 
   def exampleTwo(): Unit = {
 
-    implicit val log: Log[Id]          = Log.log
-    implicit val metricsF: Metrics[Id] = new Metrics.MetricsNOP[Id]()
-    implicit val spanF: Span[Id]       = NoopSpan[Id]()
-    implicit val keyValueStoreManager  = InMemoryStoreManager[Id]
+    implicit val log: Log[IO]          = Log.log
+    implicit val metricsF: Metrics[IO] = new Metrics.MetricsNOP[IO]()
+    implicit val spanF: Span[IO]       = NoopSpan[IO]()
+    implicit val keyValueStoreManager  = InMemoryStoreManager[IO]
 
     // Let's define our store
     val store = keyValueStoreManager.rSpaceStores
-    val space = RSpace.create[Id, Channel, Pattern, Entry, Printer](store, rholangEC)
+    val space =
+      RSpace.create[IO, Channel, Pattern, Entry, Printer](store.unsafeRunSync()).unsafeRunSync()
 
     Console.printf("\nExample Two: Let's produce and then consume...\n")
 
-    val pres1 = space.produce(Channel("friends"), alice, persist = false)
-    val pres2 = space.produce(Channel("friends"), bob, persist = false)
-    val pres3 = space.produce(Channel("friends"), carol, persist = false)
+    val pres1 = space.produce(Channel("friends"), alice, persist = false).unsafeRunSync()
+    val pres2 = space.produce(Channel("friends"), bob, persist = false).unsafeRunSync()
+    val pres3 = space.produce(Channel("friends"), carol, persist = false).unsafeRunSync()
 
     assert(pres1.isEmpty)
     assert(pres2.isEmpty)
@@ -258,9 +255,9 @@ object AddressBookExample {
           persist = false
         )
 
-    val cres1 = consumer()
-    val cres2 = consumer()
-    val cres3 = consumer()
+    val cres1 = consumer().unsafeRunSync()
+    val cres2 = consumer().unsafeRunSync()
+    val cres3 = consumer().unsafeRunSync()
 
     assert(cres1.isDefined)
     assert(cres2.isDefined)
@@ -282,14 +279,15 @@ object AddressBookExample {
           new Printer,
           persist = false
         )
+        .unsafeRunSync()
 
     assert(cres.isEmpty)
 
     println("Rollback example: And create a checkpoint...")
-    val checkpointHash = space.createCheckpoint().root
+    val checkpointHash = space.createCheckpoint().unsafeRunSync().root
 
     def produceAlice(): Option[(Printer, Seq[Entry])] =
-      unpackOption(space.produce(Channel("friends"), alice, persist = false))
+      unpackOption(space.produce(Channel("friends"), alice, persist = false).unsafeRunSync())
 
     println("Rollback example: First produce result should return some data")
     assert(produceAlice.isDefined)
@@ -303,7 +301,7 @@ object AddressBookExample {
     println(
       "Rollback example: Let's reset RSpace to the state from before running the produce operations"
     )
-    space.reset(checkpointHash)
+    space.reset(checkpointHash).unsafeRunSync()
 
     println("Rollback example: Again, first produce result should return some data")
     assert(produceAlice.isDefined)
@@ -314,17 +312,18 @@ object AddressBookExample {
   }
 
   private[this] def withSpace(
-      f: ISpace[Id, Channel, Pattern, Entry, Printer] => Unit
+      f: ISpace[IO, Channel, Pattern, Entry, Printer] => Unit
   ) = {
 
-    implicit val log: Log[Id]          = Log.log
-    implicit val metricsF: Metrics[Id] = new Metrics.MetricsNOP[Id]()
-    implicit val spanF: Span[Id]       = NoopSpan[Id]()
-    implicit val keyValueStoreManager  = InMemoryStoreManager[Id]
+    implicit val log: Log[IO]          = Log.log
+    implicit val metricsF: Metrics[IO] = new Metrics.MetricsNOP[IO]()
+    implicit val spanF: Span[IO]       = NoopSpan[IO]()
+    implicit val keyValueStoreManager  = InMemoryStoreManager[IO]
 
     // Let's define our store
     val store = keyValueStoreManager.rSpaceStores
-    val space = RSpace.create[Id, Channel, Pattern, Entry, Printer](store, rholangEC)
+    val space =
+      RSpace.create[IO, Channel, Pattern, Entry, Printer](store.unsafeRunSync()).unsafeRunSync()
     try {
       f(space)
     } finally {

@@ -1,23 +1,14 @@
 package coop.rchain.comm.rp
 
-import cats.{catsInstancesForId => _, _}
-import coop.rchain.catscontrib.effect.implicits._
+import cats.{catsInstancesForId => _}
 import coop.rchain.comm._
 import coop.rchain.comm.rp.Connect.Connections._
 import coop.rchain.comm.rp.Connect._
-import coop.rchain.metrics.Metrics
-import coop.rchain.p2p.EffectsTestInstances._
-import coop.rchain.shared._
 import org.scalatest._
 import org.scalatest.funspec.AnyFunSpec
 import org.scalatest.matchers.should.Matchers
 
 class ConnectionsSpec extends AnyFunSpec with Matchers with BeforeAndAfterEach with AppendedClues {
-
-  implicit val logEff    = new Log.NOPLog[Id]
-  implicit val timeEff   = new LogicalTime[Id]
-  implicit val metricEff = new Metrics.MetricsNOP[Id]
-
   describe("Connections") {
     describe("addConn") {
       describe("if peer is not on the list yet") {

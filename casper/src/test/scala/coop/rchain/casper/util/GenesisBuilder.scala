@@ -24,6 +24,7 @@ import coop.rchain.shared.syntax._
 import java.nio.file.{Files, Path}
 import scala.collection.compat.immutable.LazyList
 import scala.collection.mutable
+import cats.effect.unsafe.implicits.global
 
 object GenesisBuilder {
 

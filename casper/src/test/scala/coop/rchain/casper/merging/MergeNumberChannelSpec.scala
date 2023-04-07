@@ -92,7 +92,7 @@ class MergeNumberChannelSpec extends AnyFlatSpec {
     RhoName(baseRhoSeed.next())
   }
 
-  def testCase[F[_]: Async: ContextShift: Parallel: Span: Log](
+  def testCase[F[_]: Async: Parallel: Span: Log](
       baseTerms: Seq[String],
       leftTerms: Seq[DeployTestInfo],
       rightTerms: Seq[DeployTestInfo],

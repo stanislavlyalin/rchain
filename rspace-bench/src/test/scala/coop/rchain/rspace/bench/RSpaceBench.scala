@@ -1,6 +1,9 @@
 package coop.rchain.rspace.bench
 
 import cats.Id
+import cats.effect.IO
+import cats.effect.unsafe.implicits.global
+import cats.effect.unsafe.{IORuntime, IORuntimeConfig}
 import coop.rchain.metrics
 import coop.rchain.metrics.{Metrics, NoopSpan, Span}
 import coop.rchain.rholang.interpreter.RholangCLI
@@ -11,21 +14,18 @@ import coop.rchain.rspace.util._
 import coop.rchain.rspace.{RSpace, _}
 import coop.rchain.shared.Log
 import coop.rchain.shared.PathOps._
-import monix.eval.Task
-import monix.execution.Scheduler
 import org.openjdk.jmh.annotations._
 import org.openjdk.jmh.infra.Blackhole
 
 import java.nio.file.Files
-import java.util.concurrent.TimeUnit
-import scala.concurrent.ExecutionContext.Implicits.global
+import java.util.concurrent.{Executors, TimeUnit}
 import scala.concurrent.duration.Duration
-import scala.concurrent.{Await, Future}
+import scala.concurrent.{Await, ExecutionContext, Future}
 
 @org.openjdk.jmh.annotations.State(Scope.Thread)
 trait RSpaceBenchBase {
 
-  var space: ISpace[Id, Channel, Pattern, Entry, EntriesCaptor] = null
+  var space: ISpace[IO, Channel, Pattern, Entry, EntriesCaptor] = null
 
   val channel  = Channel("friends#" + 1.toString)
   val channels = List(channel)
@@ -45,30 +45,30 @@ trait RSpaceBenchBase {
     bh.consume(r)
   }
 
-  def createTask(taskIndex: Int, iterations: Int): Task[Unit] =
-    Task.delay {
+  def createIO(IOIndex: Int, iterations: Int): IO[Unit] =
+    IO.delay {
       for (_ <- 1 to iterations) {
-        val r1 = unpackOption(space.produce(channel, bob, persist = false))
+        val r1 = unpackOption(space.produce(channel, bob, persist = false).unsafeRunSync())
         runK(r1)
         getK(r1).results
       }
     }
 
-  val tasksCount      = 200
+  val IOsCount        = 200
   val iterationsCount = 10
-  val tasks = (1 to tasksCount).map(idx => {
-    val task = createTask(idx, iterationsCount)
-    task
+  val IOs = (1 to IOsCount).map(idx => {
+    val IO = createIO(idx, iterationsCount)
+    IO
   })
-
-  val dupePool = Scheduler.fixedPool("dupe-pool", 3)
-
   @Benchmark
   @BenchmarkMode(Array(Mode.SingleShotTime))
   @OutputTimeUnit(TimeUnit.MILLISECONDS)
   @Warmup(iterations = 0)
   @Threads(1)
   def simulateDupe(bh: Blackhole) = {
+
+    val compute  = ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(3))
+    val sheduler = cats.effect.unsafe.Scheduler.createDefaultScheduler()
 
     space.consume(
       channels,
@@ -77,9 +77,11 @@ trait RSpaceBenchBase {
       persist = true
     )
 
-    val results: IndexedSeq[Future[Unit]] =
-      tasks.map(f => f.executeOn(dupePool).runToFuture(dupePool))
+    implicit val ior = IORuntime(compute, compute, sheduler._1, sheduler._2, IORuntimeConfig())
 
+    val results: IndexedSeq[Future[Unit]] = IOs.map(f => f.unsafeToFuture()(ior))
+
+    implicit val a = scala.concurrent.ExecutionContext.global
     bh.consume(Await.ready(Future.sequence(results), Duration.Inf))
   }
 }
@@ -90,18 +92,20 @@ trait RSpaceBenchBase {
 @Measurement(iterations = 10)
 class RSpaceBench extends RSpaceBenchBase {
 
-  implicit val logF: Log[Id]            = new Log.NOPLog[Id]
-  implicit val noopMetrics: Metrics[Id] = new metrics.Metrics.MetricsNOP[Id]
-  implicit val noopSpan: Span[Id]       = NoopSpan[Id]()
+  implicit val logF: Log[IO]            = new Log.NOPLog[IO]
+  implicit val noopMetrics: Metrics[IO] = new metrics.Metrics.MetricsNOP[IO]
+  implicit val noopSpan: Span[IO]       = NoopSpan[IO]()
 
   val dbDir        = Files.createTempDirectory("rchain-rspace-bench-")
-  val kvm          = RholangCLI.mkRSpaceStoreManager(dbDir)
+  val kvm          = RholangCLI.mkRSpaceStoreManager[IO](dbDir).unsafeRunSync()
   val rspaceStores = kvm.rSpaceStores
 
   import coop.rchain.shared.RChainScheduler._
   @Setup
   def setup() =
-    space = RSpace.create[Id, Channel, Pattern, Entry, EntriesCaptor](rspaceStores, rholangEC)
+    space = RSpace
+      .create[IO, Channel, Pattern, Entry, EntriesCaptor](rspaceStores.unsafeRunSync())
+      .unsafeRunSync()
 
   @TearDown
   def tearDown() = {
