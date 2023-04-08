@@ -50,10 +50,8 @@ class RuntimeSpec extends AnyFlatSpec with Matchers {
   private def checkError(rho: String, error: String): Unit =
     assert(execute(rho).errors.nonEmpty, s"Expected $rho to fail - it didn't.")
 
-  private def execute(source: String): EvaluateResult = {
-    import coop.rchain.shared.RChainScheduler._
+  private def execute(source: String): EvaluateResult =
     mkRuntime[IO](tmpPrefix).use { runtime =>
       runtime.evaluate(source)
     }.unsafeRunSync
-  }
 }

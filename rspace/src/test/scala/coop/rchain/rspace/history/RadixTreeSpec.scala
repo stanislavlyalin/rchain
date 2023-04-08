@@ -802,7 +802,7 @@ class RadixTreeSpec extends AnyFlatSpec with Matchers with OptionValues {
           InMemoryKeyValueStore[IO]
       ) => IO[Unit]
   ): Unit = {
-    import coop.rchain.shared.RChainScheduler._
+
     val store         = InMemoryKeyValueStore[IO]
     val typedStore    = store.toTypedStore(RadixHistory.codecBlakeHash, scodec.codecs.bytes)
     val radixTreeImpl = new RadixTreeImpl[IO](typedStore)

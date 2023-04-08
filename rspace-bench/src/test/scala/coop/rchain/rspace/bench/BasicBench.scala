@@ -111,7 +111,7 @@ object BasicBench {
     private val dbDir: Path                                   = Files.createTempDirectory("rchain-storage-test-")
     implicit val kvm                                          = RholangCLI.mkRSpaceStoreManager[IO](dbDir).unsafeRunSync()
     val rSpaceStore                                           = kvm.rSpaceStores.unsafeRunSync()
-    import coop.rchain.shared.RChainScheduler._
+
     val testSpace: ISpace[
       IO,
       Par,

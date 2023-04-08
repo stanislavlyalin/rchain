@@ -98,7 +98,7 @@ object OperationOn0Ch {
       implicit val logger: Log[IO]         = Log.log[IO]
       implicit val metricsEff: Metrics[IO] = new Metrics.MetricsNOP[IO]
       implicit val noopSpan: Span[IO]      = NoopSpan[IO]()
-      import coop.rchain.shared.RChainScheduler._
+
       rhoRuntimeEff[IO](initRegistry = false).use {
         case (runtime, _, _) =>
           for {

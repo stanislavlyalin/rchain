@@ -32,7 +32,6 @@ import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
 
 import scala.collection.mutable.ListBuffer
 import scala.concurrent.duration._
-import coop.rchain.shared.RChainScheduler._
 
 class CostAccountingSpec
     extends AnyFlatSpec
@@ -78,8 +77,7 @@ class CostAccountingSpec
     for {
       hrstores <- RSpace
                    .createWithReplay[F, Par, BindPattern, ListParWithRandom, TaggedContinuation](
-                     stores,
-                     rholangEC
+                     stores
                    )
       (space, replay) = hrstores
       rhoRuntime <- RhoRuntime

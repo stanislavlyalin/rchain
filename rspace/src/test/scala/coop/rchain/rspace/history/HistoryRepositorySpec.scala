@@ -178,7 +178,6 @@ class HistoryRepositorySpec
     val pastRoots               = rootRepository
     implicit val log: Log[IO]   = new NOPLog()
     implicit val span: Span[IO] = new NoopSpan[IO]()
-    import coop.rchain.shared.RChainScheduler._
 
     (for {
       emptyHistory <- History.create(History.emptyRootHash, InMemoryKeyValueStore[IO])

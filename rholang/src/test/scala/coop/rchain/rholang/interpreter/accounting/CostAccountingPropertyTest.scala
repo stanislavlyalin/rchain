@@ -100,7 +100,7 @@ object CostAccountingPropertyTest {
   }
 
   def costOfExecution(procs: Proc*): IO[Long] = {
-    import coop.rchain.shared.RChainScheduler._
+
     implicit val logF: Log[IO]            = new Log.NOPLog[IO]
     implicit val noopMetrics: Metrics[IO] = new metrics.Metrics.MetricsNOP[IO]
     implicit val noopSpan: Span[IO]       = NoopSpan[IO]()

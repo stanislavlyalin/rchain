@@ -9,7 +9,7 @@ import coop.rchain.rspace.examples.StringExamples._
 import coop.rchain.rspace.examples.StringExamples.implicits._
 import coop.rchain.rspace.history.{HistoryRepository, HistoryRepositoryInstances}
 import coop.rchain.rspace.syntax._
-import coop.rchain.shared.{Log, RChainScheduler, Serialize}
+import coop.rchain.shared.{Log, Serialize}
 import coop.rchain.store.InMemoryStoreManager
 import monix.eval._
 import monix.execution.atomic.AtomicAny
@@ -105,8 +105,7 @@ abstract class InMemoryHotStoreTestsBase[F[_]]
         val space =
           new RSpace[F, String, Pattern, String, StringsCaptor](
             hr,
-            atomicStore,
-            RChainScheduler.rholangEC
+            atomicStore
           )
         Applicative[F].pure((ts, atomicStore, space))
       }

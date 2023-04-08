@@ -20,7 +20,6 @@ final case class TestFixture(space: RhoISpace[IO], reducer: DebruijnInterpreter[
 
 trait PersistentStoreTester {
   implicit val ms: Metrics.Source = Metrics.BaseSource
-  import coop.rchain.shared.RChainScheduler._
 
   def withTestSpace[R](f: TestFixture => R): R = {
     implicit val logF: Log[IO]           = new Log.NOPLog[IO]
@@ -32,7 +31,7 @@ trait PersistentStoreTester {
     implicit val kvm  = InMemoryStoreManager[IO]
     val store         = kvm.rSpaceStores.unsafeRunSync
     val space = RSpace
-      .create[IO, Par, BindPattern, ListParWithRandom, TaggedContinuation](store, rholangEC)
+      .create[IO, Par, BindPattern, ListParWithRandom, TaggedContinuation](store)
       .unsafeRunSync
     val reducer = RholangOnlyDispatcher(space)._2
     cost.set(Cost.UNSAFE_MAX).unsafeRunSync

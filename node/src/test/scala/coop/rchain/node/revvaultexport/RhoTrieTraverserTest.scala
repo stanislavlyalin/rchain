@@ -20,7 +20,6 @@ import scala.util.Random
 class RhoTrieTraverserTest extends AnyFlatSpec {
   private val SHARD_ID = "root-shard"
   private val registry = Registry(GenesisBuilder.defaultSystemContractPubKey)
-  import coop.rchain.shared.RChainScheduler._
 
   "traverse the TreeHashMap" should "work" in {
     val total     = 100

@@ -31,7 +31,6 @@ import cats.effect.unsafe.implicits.global
 //noinspectTaskn ZeroIndexToHead,NameBooleanParameters
 trait ReplayRSpaceTests extends ReplayRSpaceTestsBase[String, Pattern, String, String] {
 
-  import coop.rchain.shared.RChainScheduler._
   implicit val pIO = IO.parallelForIO
 
   implicit val log: Log[IO]        = new Log.NOPLog[IO]
@@ -1267,7 +1266,7 @@ trait InMemoryReplayRSpaceTestsBase[C, P, A, K] extends ReplayRSpaceTestsBase[C,
       sk: Serialize[K],
       m: Match[IO, P, A]
   ): S = {
-    import coop.rchain.shared.RChainScheduler._
+
     implicit val log: Log[IO]          = Log.log[IO]
     implicit val metricsF: Metrics[IO] = new Metrics.MetricsNOP[IO]()
     implicit val spanF: Span[IO]       = NoopSpan[IO]()
@@ -1291,8 +1290,7 @@ trait InMemoryReplayRSpaceTestsBase[C, P, A, K] extends ReplayRSpaceTestsBase[C,
 
       space = new RSpace[IO, C, P, A, K](
         historyRepository,
-        store,
-        rholangEC
+        store
       )
       historyCache <- Ref[IO].of(HotStoreState[C, P, A, K]())
       replayStore <- {
@@ -1301,8 +1299,7 @@ trait InMemoryReplayRSpaceTestsBase[C, P, A, K] extends ReplayRSpaceTestsBase[C,
       }
       replaySpace = new ReplayRSpace[IO, C, P, A, K](
         historyRepository,
-        replayStore,
-        rholangEC
+        replayStore
       )
       res <- f(store, replayStore, space, replaySpace)
     } yield { res }).unsafeRunSync

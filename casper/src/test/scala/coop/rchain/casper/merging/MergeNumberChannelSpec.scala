@@ -305,8 +305,6 @@ class MergeNumberChannelSpec extends AnyFlatSpec {
   implicit val logEff  = Log.log[IO]
   implicit val spanEff = Span.noop[IO]
 
-  import coop.rchain.shared.RChainScheduler._
-
   "multiple branches" should "reject deploy when mergeable number channels got negative number" in effectTest {
     testCase[IO](
       baseTerms = Seq(rhoST, rhoChange(10)),

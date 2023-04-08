@@ -9,7 +9,6 @@ import coop.rchain.rspace.examples.AddressBookExample._
 import coop.rchain.rspace.examples.AddressBookExample.implicits._
 import coop.rchain.rspace.test._
 import coop.rchain.rspace.util.{getK, runK, unpackOption}
-import coop.rchain.shared.RChainScheduler
 import monix.execution.atomic.AtomicAny
 import scodec.Codec
 
@@ -276,8 +275,7 @@ abstract class InMemoryHotStoreStorageExamplesTestsBase[F[_]]
         val space =
           new RSpace[F, Channel, Pattern, Entry, EntriesCaptor](
             hr,
-            atomicStore,
-            RChainScheduler.rholangEC
+            atomicStore
           )
         Applicative[F].pure((ts, atomicStore, space))
       }

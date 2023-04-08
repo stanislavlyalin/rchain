@@ -15,7 +15,6 @@ import coop.rchain.shared.Log
 import coop.rchain.store.InMemoryStoreManager
 import org.scalatest.flatspec.AsyncFlatSpec
 import org.scalatest.matchers.should.Matchers
-import coop.rchain.shared.RChainScheduler._
 
 // TODO enable when CE is migrated to 3 (cats.effect.testing.scalatest is not available for CE2)
 //class RuntimeSpec extends AsyncFlatSpec with AsyncIOSpec with Matchers {
@@ -32,8 +31,7 @@ import coop.rchain.shared.RChainScheduler._
 //      store <- kvm.rSpaceStores
 //      runtime <- RhoRuntime.createRuntime(
 //                  store,
-//                  BlockRandomSeed.nonNegativeMergeableTagName(dummyShardId),
-//                  rholangEC
+//                  BlockRandomSeed.nonNegativeMergeableTagName(dummyShardId)
 //                )
 //
 //      /**
@@ -88,8 +86,7 @@ import coop.rchain.shared.RChainScheduler._
 //      store <- kvm.rSpaceStores
 //      runtime <- RhoRuntime.createRuntime(
 //                  store,
-//                  BlockRandomSeed.nonNegativeMergeableTagName(dummyShardId),
-//                  rholangEC
+//                  BlockRandomSeed.nonNegativeMergeableTagName(dummyShardId)
 //                )
 //      r          <- runtime.evaluate(contract, Cost.UNSAFE_MAX, Map.empty, random)
 //      _          = r.errors should be(Vector.empty)

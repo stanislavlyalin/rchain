@@ -25,8 +25,6 @@ import scala.tools.jline.console.completer.StringsCompleter
 
 object NodeMain {
 
-  import coop.rchain.shared.RChainScheduler.mainEC // main execution context
-
   /**
     * Starts RNode instance
     *

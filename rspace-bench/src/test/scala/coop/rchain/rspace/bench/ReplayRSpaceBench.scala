@@ -79,7 +79,7 @@ object ReplayRSpaceBench {
 
     @Setup
     def setup() = {
-      import coop.rchain.shared.RChainScheduler._
+
       dbDir = Files.createTempDirectory("replay-rspace-bench-")
       val kvm   = RholangCLI.mkRSpaceStoreManager[IO](dbDir).unsafeRunSync()
       val store = kvm.rSpaceStores

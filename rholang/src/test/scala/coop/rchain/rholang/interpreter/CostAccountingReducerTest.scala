@@ -55,7 +55,7 @@ class CostAccountingReducerTest extends AnyFlatSpec with Matchers with TripleEqu
     val substTerm         = term(Expr(GString("1")))
     val termCost          = Chargeable[Par].cost(substTerm)
     val initCost          = Cost(1000)
-    import coop.rchain.shared.RChainScheduler._
+
     (for {
       cost <- CostAccounting.initialCost[IO](initCost)
       res <- {
@@ -73,7 +73,6 @@ class CostAccountingReducerTest extends AnyFlatSpec with Matchers with TripleEqu
     val varTerm           = term(Expr(EVarBody(EVar(Var(FreeVar(0))))))
     val originalTermCost  = Chargeable[Par].cost(varTerm)
     val initCost          = Cost(1000)
-    import coop.rchain.shared.RChainScheduler._
 
     (for {
       cost <- CostAccounting.initialCost[IO](initCost)
@@ -111,7 +110,7 @@ class CostAccountingReducerTest extends AnyFlatSpec with Matchers with TripleEqu
           (ContResult[Par, BindPattern, TaggedContinuation], Seq[Result[Par, ListParWithRandom]])
         ]](OutOfPhlogistonsError)
     }
-    import coop.rchain.shared.RChainScheduler._
+
     implicit val rand        = Blake2b512Random.defaultRandom
     implicit val cost        = CostAccounting.initialCost[IO](Cost(1000)).unsafeRunSync
     val (_, chargingReducer) = createDispatcher(iSpace, Map.empty, Map.empty)
@@ -136,7 +135,6 @@ class CostAccountingReducerTest extends AnyFlatSpec with Matchers with TripleEqu
     implicit val rand          = Blake2b512Random(Array.empty[Byte])
     implicit val logF: Log[IO] = Log.log[IO]
     implicit val kvm           = InMemoryStoreManager[IO]
-    import coop.rchain.shared.RChainScheduler._
 
     def testImplementation(pureRSpace: RhoISpace[IO]): IO[
       (

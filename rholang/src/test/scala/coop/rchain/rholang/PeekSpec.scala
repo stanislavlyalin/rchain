@@ -9,7 +9,6 @@ import coop.rchain.models.Expr.ExprInstance.{GInt, GString}
 import coop.rchain.models.rholang.implicits._
 import coop.rchain.shared.Log
 import coop.rchain.rholang.interpreter.InterpreterUtil
-import coop.rchain.shared.RChainScheduler._
 
 import scala.concurrent.duration._
 

@@ -16,7 +16,6 @@ trait Fs2StreamMatchers {
     * @param timeout duration to wait for new elements
     */
   class EmptyMatcher[A](timeout: FiniteDuration) extends Matcher[Stream[IO, A]] {
-    import coop.rchain.shared.RChainScheduler._
 
     def apply(left: Stream[IO, A]) = {
       val res = left.take(1).timeout(timeout).compile.toList.attempt.unsafeRunSync

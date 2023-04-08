@@ -53,7 +53,6 @@ object Resources {
     implicit val log               = Log.log[F]
     implicit val metricsEff        = new metrics.Metrics.MetricsNOP[F]
     implicit val noopSpan: Span[F] = NoopSpan[F]()
-    import coop.rchain.shared.RChainScheduler._
 
     for {
       rStore <- kvm.rSpaceStores
@@ -62,8 +61,7 @@ object Resources {
                          rStore,
                          mStore,
                          mergeableTagName,
-                         RuntimeManager.noOpExecutionTracker[F],
-                         rholangEC
+                         RuntimeManager.noOpExecutionTracker[F]
                        )
     } yield runtimeManager
   }

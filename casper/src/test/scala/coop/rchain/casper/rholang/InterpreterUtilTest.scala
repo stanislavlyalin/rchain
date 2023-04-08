@@ -41,7 +41,6 @@ class InterpreterUtilTest
   implicit val metricsEff: Metrics[IO] = new metrics.Metrics.MetricsNOP[IO]
   implicit val span: Span[IO]          = new NoopSpan[IO]
   implicit val logSource: LogSource    = LogSource(this.getClass)
-  import coop.rchain.shared.RChainScheduler._
 
   val genesisContext = GenesisBuilder.buildGenesis()
   val genesis        = genesisContext.genesisBlock

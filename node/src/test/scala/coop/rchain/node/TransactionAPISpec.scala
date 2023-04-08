@@ -25,7 +25,7 @@ class TransactionAPISpec extends AnyFlatSpec with Matchers with Inspectors {
     TestNode.networkEff(genesis, networkSize = 1, withReadOnlySize = 1).use { nodes =>
       val validator = nodes(0)
       val readonly  = nodes(1)
-      import coop.rchain.shared.RChainScheduler._
+
       import readonly._
       for {
         kvm         <- Resources.mkTestRNodeStoreManager[IO](readonly.dataDir)

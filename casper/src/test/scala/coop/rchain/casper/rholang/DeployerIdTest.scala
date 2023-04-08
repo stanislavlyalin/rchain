@@ -24,7 +24,6 @@ class DeployerIdTest extends AnyFlatSpec with Matchers {
   implicit val time              = new LogicalTime[IO]
   implicit val log: Log[IO]      = new Log.NOPLog[IO]()
   private val dummyMergeableName = BlockRandomSeed.nonNegativeMergeableTagName("dummy")
-  import coop.rchain.shared.RChainScheduler._
 
   val runtimeManager: Resource[IO, RuntimeManager[IO]] =
     mkRuntimeManager[IO]("deployer-id-runtime-manager-test", dummyMergeableName)

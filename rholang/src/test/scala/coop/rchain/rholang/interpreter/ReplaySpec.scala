@@ -110,7 +110,6 @@ class ReplaySpec extends AnyFlatSpec with Matchers {
     implicit val logF: Log[IO]           = new Log.NOPLog[IO]
     implicit val metricsEff: Metrics[IO] = new metrics.Metrics.MetricsNOP[IO]
     implicit val noopSpan: Span[IO]      = NoopSpan[IO]()
-    import coop.rchain.shared.RChainScheduler._
 
     val resources = for {
       res <- Resources.mkRuntimes[IO]("cost-accounting-spec-")

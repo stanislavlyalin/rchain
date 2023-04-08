@@ -39,7 +39,7 @@ class BlockRetrieverSpec extends AnyFunSpec with BeforeAndAfterEach with Matcher
     Ref.unsafe[IO, Connections](List(local))
   implicit val transportLayer = new TransportLayerStub[IO]
   implicit val rpConf         = createRPConfAsk[IO](local)
-  import coop.rchain.shared.RChainScheduler._
+
   implicit val commUtil       = CommUtil.of[IO]
   implicit val blockRetriever = BlockRetriever.of[IO]
 

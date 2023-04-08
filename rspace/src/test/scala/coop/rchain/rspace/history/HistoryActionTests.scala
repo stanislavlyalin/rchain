@@ -276,8 +276,6 @@ class HistoryActionTests extends AnyFlatSpec with Matchers {
       } yield ()
   }
 
-  import coop.rchain.shared.RChainScheduler._
-
   protected def withEmptyHistory(f: IO[History[IO]] => IO[Unit]): Unit = {
     val emptyHistory = History.create(History.emptyRootHash, InMemoryKeyValueStore[IO])
     f(emptyHistory).unsafeRunTimed(1.minute)

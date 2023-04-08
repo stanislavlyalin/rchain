@@ -100,7 +100,6 @@ class RSpaceBench extends RSpaceBenchBase {
   val kvm          = RholangCLI.mkRSpaceStoreManager[IO](dbDir).unsafeRunSync()
   val rspaceStores = kvm.rSpaceStores
 
-  import coop.rchain.shared.RChainScheduler._
   @Setup
   def setup() =
     space = RSpace

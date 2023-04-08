@@ -402,7 +402,6 @@ class HistoryGenKeySpec extends AnyFlatSpec with Matchers with BeforeAndAfterAll
   }
 
   it should "execute with monix" in {
-    import coop.rchain.shared.RChainScheduler._
 
     implicit val log: Log.NOPLog[IO]         = new Log.NOPLog[IO]()
     implicit val met: Metrics.MetricsNOP[IO] = new Metrics.MetricsNOP[IO]()

@@ -10,9 +10,8 @@ import org.scalatest.matchers.should.Matchers
 
 import scala.concurrent.duration.{DurationInt, FiniteDuration}
 import scala.util.Success
-import RChainScheduler._
 import cats.effect.unsafe.implicits.global
-import cats.effect.{Ref, Temporal}
+import cats.effect.Ref
 
 class Fs2ExtensionsSpec extends AnyFlatSpec with Matchers {
 

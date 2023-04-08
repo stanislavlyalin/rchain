@@ -30,7 +30,6 @@ class BlockRetrieverRequestAllSpec extends AnyFunSpec with BeforeAndAfterEach wi
   val hash                    = ByteString.copyFrom("newHash", "utf-8")
   val timeout: FiniteDuration = 240.seconds
   val local: PeerNode         = peerNode("src", 40400)
-  import coop.rchain.shared.RChainScheduler._
 
   implicit val log: Log[IO] = new LogStub
   implicit val metrics      = new Metrics.MetricsNOP[IO]

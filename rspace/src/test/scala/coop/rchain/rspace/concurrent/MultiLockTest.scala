@@ -9,7 +9,6 @@ import scala.collection._
 import scala.collection.immutable.Seq
 import coop.rchain.metrics
 import coop.rchain.metrics.Metrics
-import coop.rchain.shared.RChainScheduler._
 
 class MultiLockTest extends AnyFlatSpec with Matchers {
 

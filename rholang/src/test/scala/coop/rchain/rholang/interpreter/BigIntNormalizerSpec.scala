@@ -21,7 +21,7 @@ import org.scalatest.matchers.should.Matchers
 //  implicit val noopMetrics: Metrics[IO] = new metrics.Metrics.MetricsNOP[IO]
 //  implicit val noopSpan: Span[IO]       = NoopSpan[IO]()
 //
-//  import coop.rchain.shared.RChainScheduler._
+//
 //  val outcomeCh = "ret"
 //
 //  private def execute[F[_]: Async: Parallel: Metrics: Span: Log](

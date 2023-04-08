@@ -19,8 +19,6 @@ import scala.concurrent.ExecutionContext
 
 @SuppressWarnings(Array("org.wartremover.warts.EitherProjectionPartial"))
 object AddressBookExample {
-  import coop.rchain.shared.RChainScheduler._
-
   /* Here we define a type for channels */
 
   final case class Channel(name: String)

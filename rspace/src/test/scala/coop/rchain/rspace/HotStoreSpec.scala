@@ -1116,7 +1116,6 @@ class History[F[_]: Sync, C, P, A, K](R: Ref[F, HotStoreState[C, P, A, K]])
 
 trait InMemHotStoreSpec extends HotStoreSpec[IO] {
 
-  import coop.rchain.shared.RChainScheduler._
   protected type F[A] = IO[A]
   implicit override val S: Sync[F]      = implicitly[Async[IO]]
   implicit override val P: Parallel[IO] = IO.parallelForIO

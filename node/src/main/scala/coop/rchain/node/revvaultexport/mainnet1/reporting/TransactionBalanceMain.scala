@@ -73,7 +73,6 @@ object TransactionBalanceMain {
     val transactionBalancesFile = outputDir.resolve("transactionBalances.csv")
     val historyFile             = outputDir.resolve("history.csv")
 
-    import coop.rchain.shared.RChainScheduler._
     implicit val tc = Async[IO]
 
     val task: IO[Unit] = for {

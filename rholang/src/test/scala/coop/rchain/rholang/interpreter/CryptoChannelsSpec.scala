@@ -221,7 +221,6 @@ class CryptoChannelsSpec
     implicit val noopMetrics: Metrics[IO] = new metrics.Metrics.MetricsNOP[IO]
     implicit val noopSpan: Span[IO]       = NoopSpan[IO]()
     implicit val kvm                      = InMemoryStoreManager[IO]
-    import coop.rchain.shared.RChainScheduler._
 
     val runtime = (for {
       store                       <- kvm.rSpaceStores

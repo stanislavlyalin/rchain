@@ -35,7 +35,7 @@ final case class BufferedGrpcStreamChannel[F[_]](
     buferSubscriber: Stream[F, Unit]
 )
 
-class GrpcTransportClient[F[_]: Async: AsyncEffect: Log: Metrics](
+class GrpcTransportClient[F[_]: Async: Log: Metrics](
     networkId: String,
     cert: String,
     key: String,
@@ -46,9 +46,6 @@ class GrpcTransportClient[F[_]: Async: AsyncEffect: Log: Metrics](
 ) extends TransportLayer[F] {
 
   val DefaultSendTimeout: FiniteDuration = 5.seconds
-
-  import coop.rchain.shared.RChainScheduler.ioScheduler
-  val ioEC = ExecutionContext.fromExecutorService(ioScheduler)
 
   implicit val metricsSource: Metrics.Source =
     Metrics.Source(CommMetricsSource, "rp.transport")

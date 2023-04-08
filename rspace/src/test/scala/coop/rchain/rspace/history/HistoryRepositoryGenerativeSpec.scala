@@ -22,7 +22,6 @@ import cats.effect.unsafe.implicits.global
 
 import java.nio.file.{Files, Path}
 import scala.concurrent.duration._
-import coop.rchain.shared.RChainScheduler._
 
 class LMDBHistoryRepositoryGenerativeSpec
     extends HistoryRepositoryGenerativeDefinition

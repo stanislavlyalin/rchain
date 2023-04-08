@@ -24,7 +24,6 @@ import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks._
 import java.nio.file.{Files, Path}
 import scala.collection.immutable.BitSet
 import scala.concurrent.duration._
-import coop.rchain.shared.RChainScheduler._
 
 class RholangMethodsCostsSpec
     extends AnyWordSpec
@@ -1043,14 +1042,13 @@ class RholangMethodsCostsSpec
   implicit val ms: Metrics.Source       = Metrics.BaseSource
   implicit val kvm                      = InMemoryStoreManager[IO]
   val rSpaceStore                       = kvm.rSpaceStores.unsafeRunSync
-  import coop.rchain.shared.RChainScheduler._
 
   protected override def beforeAll(): Unit = {
     import coop.rchain.rholang.interpreter.storage._
     implicit val m: Match[IO, BindPattern, ListParWithRandom] = matchListPar[IO]
     dbDir = Files.createTempDirectory("rholang-interpreter-test-")
     space = RSpace
-      .create[IO, Par, BindPattern, ListParWithRandom, TaggedContinuation](rSpaceStore, rholangEC)
+      .create[IO, Par, BindPattern, ListParWithRandom, TaggedContinuation](rSpaceStore)
       .unsafeRunSync
   }
 

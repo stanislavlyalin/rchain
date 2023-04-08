@@ -203,7 +203,7 @@ class StackSafetySpec extends AnyFlatSpec with TableDrivenPropertyChecks with Ma
       val ast = Compiler[Eval].sourceToADT(rho).value
       PrettyPrinter().buildString(ast)
       checkSuccess(rho) {
-        import coop.rchain.shared.RChainScheduler._
+
         mkRuntime[IO](tmpPrefix).use { runtime =>
           runtime.evaluate(rho)
         }
