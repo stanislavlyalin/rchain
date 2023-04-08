@@ -51,8 +51,6 @@ class ValidateTest
   implicit val metrics: Metrics[IO] = new Metrics.MetricsNOP[IO]()
   implicit val s                    = Sync[IO]
 
-  import coop.rchain.shared.RChainScheduler._
-
   override def beforeEach(): Unit = {
     log.reset()
     timeEff.reset()
@@ -464,8 +462,7 @@ class ValidateTest
                            BlockRandomSeed.nonNegativeMergeableTagName(
                              genesis.shardId
                            ),
-                           RuntimeManager.noOpExecutionTracker[IO],
-                           rholangEC
+                           RuntimeManager.noOpExecutionTracker[IO]
                          )
         result <- {
           implicit val rm = runtimeManager

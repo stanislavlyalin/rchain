@@ -27,7 +27,6 @@ import org.scalatest._
 import org.scalatest.flatspec.AsyncFlatSpec
 import org.scalatest.matchers.should.Matchers
 import cats.effect.testing.scalatest.AsyncIOSpec
-import coop.rchain.shared.RChainScheduler._
 
 import scala.collection.immutable.SortedMap
 

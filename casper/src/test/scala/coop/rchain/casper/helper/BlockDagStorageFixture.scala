@@ -25,7 +25,6 @@ trait BlockDagStorageFixture extends BeforeAndAfter { self: Suite =>
   )(f: BlockStore[IO] => BlockDagStorage[IO] => RuntimeManager[IO] => IO[R]): R = {
     implicit val metrics = new MetricsNOP[IO]()
     implicit val log     = Log.log[IO]
-    import coop.rchain.shared.RChainScheduler._
 
     def create(dir: Path) =
       for {
@@ -49,7 +48,6 @@ trait BlockDagStorageFixture extends BeforeAndAfter { self: Suite =>
   def withStorage[R](f: BlockStore[IO] => BlockDagStorage[IO] => IO[R]): R = {
     implicit val metrics = new MetricsNOP[IO]()
     implicit val log     = Log.log[IO]
-    import coop.rchain.shared.RChainScheduler._
 
     BlockDagStorageTestFixture.withStorageF[IO].use(Function.uncurried(f).tupled).unsafeRunSync
   }

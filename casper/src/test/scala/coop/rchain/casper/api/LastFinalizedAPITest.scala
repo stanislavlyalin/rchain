@@ -41,7 +41,6 @@ import scala.collection.immutable.SortedMap
 //
 //  private val createValidator = ValidatorIdentity(randomValidatorKeyPairs.take(1).toList.head._1)
 //  private val createSender    = createValidator.publicKey.bytes.toByteString
-//  import coop.rchain.shared.RChainScheduler._
 //
 //  "isFinalized" should "return true for a block placed in the DAG" in {
 //    implicit val (log, sp, rm, bs, bds) = createMocks[IO]

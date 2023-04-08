@@ -1,8 +1,7 @@
 package coop.rchain.comm.transport
 
 import cats._
-import cats.effect.concurrent.MVar2
-import cats.effect.Sync
+import cats.effect.{Async, Sync, Temporal}
 import cats.syntax.all._
 import coop.rchain.catscontrib.ski._
 import coop.rchain.comm.CommError.CommErr
@@ -14,9 +13,9 @@ import java.net.ServerSocket
 import scala.collection.mutable
 import scala.concurrent.duration._
 import scala.util.{Try, Using}
-import cats.effect.Temporal
+import cats.effect.std.PQueue
 
-abstract class TransportLayerRuntime[F[_]: Sync: Temporal, E <: Environment] {
+abstract class TransportLayerRuntime[F[_]: Async, E <: Environment] {
 
   val networkId = "test"
 
@@ -229,8 +228,8 @@ trait Environment {
   def port: Int
 }
 
-final class DispatcherCallback[F[_]: Functor](state: MVar2[F, Unit]) {
-  def notifyThatDispatched(): F[Unit] = state.tryPut(()).void
+final class DispatcherCallback[F[_]: Functor](state: PQueue[F, Unit]) {
+  def notifyThatDispatched(): F[Unit] = state.tryOffer(()).void
   def waitUntilDispatched(): F[Unit]  = state.take
 }
 

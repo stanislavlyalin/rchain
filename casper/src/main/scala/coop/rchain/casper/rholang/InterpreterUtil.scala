@@ -140,7 +140,12 @@ object InterpreterUtil {
       initialStateHash: StateHash,
       block: BlockMessage,
       rand: Blake2b512Random
-  ): F[Either[ReplayFailure, StateHash]] =
+  ): F[Either[ReplayFailure, StateHash]] = {
+    // this is only for Retry lib, TODO use fs2 and remove
+    implicit val sleep = new Sleep[F] {
+      override def sleep(delay: FiniteDuration): F[Unit] = Temporal[F].sleep(delay)
+    }
+
     Span[F].trace(ReplayBlockMetricsSource) {
       val internalDeploys       = block.state.deploys
       val internalSystemDeploys = block.state.systemDeploys
@@ -179,6 +184,7 @@ object InterpreterUtil {
                        )(replayResultF)
       } yield replayResult
     }
+  }
 
   private def handleErrors[F[_]: Sync: Log](
       tsHash: ByteString,

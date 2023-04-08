@@ -2,14 +2,15 @@ package coop.rchain.rholang.interpreter.matcher
 import cats.mtl.lifting.MonadLayerControl
 import cats.{~>, Alternative, Applicative, Functor, FunctorFilter, Monad, MonadError, MonoidK}
 import cats.data.OptionT
-import cats.effect.Sync
+import cats.effect.kernel.{CancelScope, Poll}
+import cats.effect.{Outcome, Ref, Sync}
 import coop.rchain.catscontrib.MonadTrans
 import coop.rchain.rholang.interpreter.matcher.StreamT.{SCons, SNil, Step}
 
 import scala.collection.immutable.Stream
 import scala.collection.immutable.Stream.Cons
+import scala.concurrent.duration.FiniteDuration
 import scala.util.{Left, Right}
-import cats.effect.Ref
 
 /**
   * Shamelessly transcribed minimal version of Gabriel Gonzalez's beginner-friendly ListT
@@ -202,6 +203,23 @@ trait StreamTInstances2 {
       implicit val F  = F0
       implicit val M  = M0
       implicit val AL = AL0
+
+      // TODO
+      override def suspend[A](hint: Sync.Type)(thunk: => A): StreamT[F, A] = ???
+
+      override def rootCancelScope: CancelScope = ???
+
+      override def forceR[A, B](fa: StreamT[F, A])(fb: StreamT[F, B]): StreamT[F, B] = ???
+
+      override def uncancelable[A](body: Poll[StreamT[F, *]] => StreamT[F, A]): StreamT[F, A] = ???
+
+      override def canceled: StreamT[F, Unit] = ???
+
+      override def onCancel[A](fa: StreamT[F, A], fin: StreamT[F, Unit]): StreamT[F, A] = ???
+
+      override def monotonic: StreamT[F, FiniteDuration] = ???
+
+      override def realTime: StreamT[F, FiniteDuration] = ???
     }
 }
 
@@ -210,27 +228,26 @@ private trait StreamTSync[F[_]] extends Sync[StreamT[F, *]] with StreamTMonadErr
   implicit def M: Monad[StreamT[F, *]]
   implicit def AL: Alternative[StreamT[F, *]]
 
-  import cats.effect.ExitCase
+  import cats.effect.Resource.ExitCase
 
   def bracketCase[A, B](acquire: StreamT[F, A])(use: A => StreamT[F, B])(
-      release: (A, ExitCase[Throwable]) => StreamT[F, Unit]
+      release: (A, ExitCase) => StreamT[F, Unit]
   ): StreamT[F, B] =
     flatMap(StreamT.liftF(Ref.of[F, Boolean](false))) { ref =>
       StreamT(F.flatMap(F.bracketCase[Step[F, A], Step[F, B]](acquire.next) {
-        case SNil() => F.pure(SNil())
-        case SCons(head, tail) => {
-          AL.combineK(use(head), M.flatMap(tail)(use)).next
-        }
+        case SNil()            => F.pure(SNil())
+        case SCons(head, tail) => AL.combineK(use(head), M.flatMap(tail)(use)).next
+
       } {
         case (SNil(), _) => F.pure(())
-        case (SCons(head, _), ExitCase.Completed) => {
-          F.flatMap(release(head, ExitCase.Completed).next) {
+        case (SCons(head, _), Outcome.Succeeded(_)) => {
+          F.flatMap(release(head, ExitCase.Succeeded).next) {
             case SNil()      => ref.set(true)
             case SCons(_, _) => F.unit
           }
         }
         case (SCons(head, _), ec) => {
-          F.map(release(head, ec).next)(_ => ())
+          F.map(release(head, ExitCase.fromOutcome(ec)).next)(_ => ())
         }
       }) {
         case s @ SCons(_, _) => F.map(ref.get)(b => if (b) SNil() else s)

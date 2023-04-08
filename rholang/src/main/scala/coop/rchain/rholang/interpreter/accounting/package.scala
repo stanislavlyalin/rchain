@@ -3,9 +3,9 @@ package coop.rchain.rholang.interpreter
 import cats._
 import cats.data._
 import cats.effect.Sync
+import cats.effect.kernel.{MonadCancel, Resource}
 import cats.syntax.all._
 import cats.mtl._
-
 import coop.rchain.catscontrib.ski.kp
 import coop.rchain.rholang.interpreter.errors.OutOfPhlogistonsError
 import cats.effect.std.Semaphore
@@ -37,19 +37,21 @@ package object accounting extends Costs {
     override def count: F[Long]                   = semaphore.count
     override def releaseN(n: Long): F[Unit]       = semaphore.releaseN(n)
     override def tryAcquireN(n: Long): F[Boolean] = semaphore.tryAcquireN(n)
-    override def withPermit[A](t: F[A]): F[A]     = semaphore.withPermit(t)
 
+    override def permit: Resource[F, Unit] = semaphore.permit
+    override def mapK[G[_]](f: F ~> G)(implicit G: MonadCancel[G, _]): Semaphore[G] =
+      semaphore.mapK(f)
   }
 
   def charge[F[_]: Monad](
       amount: Cost
   )(implicit cost: _cost[F], error: _error[F]): F[Unit] =
-    cost.withPermit(
+    cost.permit.use { _ =>
       cost.get.flatMap { c =>
         if (c.value < 0) error.raiseError[Unit](OutOfPhlogistonsError)
         else cost.tell(Chain.one(amount)) >> cost.set(c - amount)
       }
-    ) >> error.ensure(cost.get)(OutOfPhlogistonsError)(_.value >= 0).void
+    } >> error.ensure(cost.get)(OutOfPhlogistonsError)(_.value >= 0).void
 
   // TODO: Remove global (dummy) implicit!
   implicit def noOpCostLog[M[_]: Applicative]: FunctorTell[M, Chain[Cost]] =
@@ -78,8 +80,9 @@ package object accounting extends Costs {
       override def count: G[Long]                   = nt(C.count)
       override def releaseN(n: Long): G[Unit]       = nt(C.releaseN(n))
       override def tryAcquireN(n: Long): G[Boolean] = nt(C.tryAcquireN(n))
-      override def withPermit[A](t: G[A]): G[A] =
-        Sync[G].bracket[Unit, A](acquire)(kp(t))(kp(release))
+      override def permit: Resource[G, Unit]        = Resource.make(().pure[G])(_ => ().pure[G])
+
+      override def mapK[K[_]](f: G ~> K)(implicit G: MonadCancel[K, _]): Semaphore[K] = this.mapK(f)
     }
 
 }

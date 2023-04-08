@@ -24,7 +24,6 @@ import coop.rchain.shared.syntax._
 import org.scalatest.EitherValues
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
-import coop.rchain.shared.RChainScheduler._
 
 import java.io.PrintWriter
 import java.nio.file.{Files, Path}
@@ -294,8 +293,7 @@ object GenesisTest {
                          rStore,
                          mStore,
                          BlockRandomSeed.nonNegativeMergeableTagName(rchainShardId),
-                         t,
-                         rholangEC
+                         t
                        )
       result <- body(runtimeManager, genesisPath, log)
       _      <- Sync[F].delay { storePath.recursivelyDelete() }

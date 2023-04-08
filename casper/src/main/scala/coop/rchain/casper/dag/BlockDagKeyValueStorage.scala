@@ -124,11 +124,11 @@ final class BlockDagKeyValueStorage[F[_]: Async: Log] private (
             )
       } yield ()
 
-    lock.withPermit(
+    lock.permit.use { _ =>
       blockMetadataIndex
         .contains(blockMetadata.blockHash)
         .ifM(logAlreadyStored, doInsert)
-    )
+    }
   }
 
   /**

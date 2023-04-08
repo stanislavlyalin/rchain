@@ -29,7 +29,6 @@ import cats.effect.Ref
 import cats.effect.unsafe.implicits.global
 
 class RunningHandleHasBlockSpec extends AnyFunSpec with BeforeAndAfterEach with Matchers {
-  import coop.rchain.shared.RChainScheduler._
 
   val local: PeerNode = peerNode("src", 40400)
 

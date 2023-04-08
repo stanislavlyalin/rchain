@@ -75,7 +75,25 @@ object GrpcTransportReceiver {
                       s"Inbound gRPC channel with ${peer.toAddress} closed because fiber has been cancelled."
                     )
                   )
-          } yield (tellBuffer.offer1 _, blobBuffer.offer1 _, stream)
+          } yield (
+            (x: Send) =>
+              tellBuffer
+                .trySend(x)
+                .flatMap(
+                  _.leftTraverse(
+                    _ => new Exception("Send channel is closed").raiseError[F, Boolean]
+                  ).map(_.merge)
+                ),
+            (x: StreamMessage) =>
+              blobBuffer
+                .trySend(x)
+                .flatMap(
+                  _.leftTraverse(
+                    _ => new Exception("Stream channel is closed").raiseError[F, Boolean]
+                  ).map(_.merge)
+                ),
+            stream
+          )
 
         for {
           bDefNew <- Deferred[F, MessageBuffers[F]]
@@ -161,18 +179,21 @@ object GrpcTransportReceiver {
         )
     }
 
-    import coop.rchain.shared.RChainScheduler.mainEC
-    val server = NettyServerBuilder
-      .forPort(port)
-      .executor(mainEC.execute)
-      .maxInboundMessageSize(maxMessageSize)
-      .sslContext(serverSslContext)
-      .addService(TransportLayerFs2Grpc.bindService(service))
-      .intercept(new SslSessionServerInterceptor(networkId))
-      .build
+    Dispatcher[F].flatMap { d =>
+      val startF = Sync[F].delay(
+        NettyServerBuilder
+          .forPort(port)
+          .maxInboundMessageSize(maxMessageSize)
+          .sslContext(serverSslContext)
+          .addService(TransportLayerFs2Grpc.bindService(d, service))
+          .intercept(new SslSessionServerInterceptor(networkId, d))
+          .build
+          .start
+      )
+      Resource
+        .make(startF)(server => Sync[F].delay(server.shutdown().awaitTermination()))
+        .map(_ => ())
+    }
 
-    val startF = Sync[F].delay(server.start())
-    val stopF  = Sync[F].delay(server.shutdown().awaitTermination())
-    Resource.make(startF)(_ => stopF).map(_ => ())
   }
 }

@@ -34,10 +34,9 @@ package object effects {
 
   def kademliaRPC[F[_]: Async: RPConfAsk: Metrics](
       networkId: String,
-      timeout: FiniteDuration,
-      grpcEC: ExecutionContext
+      timeout: FiniteDuration
   ): KademliaRPC[F] =
-    new GrpcKademliaRPC(networkId, timeout, grpcEC)
+    new GrpcKademliaRPC(networkId, timeout)
 
   def transportClient[F[_]: Async: Parallel: Log: Metrics](
       networkId: String,

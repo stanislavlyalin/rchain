@@ -42,7 +42,6 @@ import scala.collection.immutable.SortedMap
 //    with IdiomaticMockito
 //    with IdiomaticMockitoCats
 //    with ArgumentMatchersSugar {
-//  import coop.rchain.shared.RChainScheduler._
 //
 //  private val genesis = getRandomBlock()
 //  private val b1      = getRandomBlock()

@@ -32,7 +32,15 @@ class StreamObservableClass[F[_]: Async: Log](
         case Left(e)     => Log[F].error(e.message) >> none.pure[F]
       }
 
-    def push(key: String): F[Boolean] = subject.offer1(StreamMsgId(key, blob.sender))
+    def push(key: String): F[Boolean] =
+      subject
+        .trySend(StreamMsgId(key, blob.sender))
+        .flatMap(
+          _.leftTraverse(
+            _ => new Exception(s"Channel is closed when trying to send.").raiseError[F, Boolean]
+          ).map(_.merge)
+        )
+
     def propose(key: String): F[Unit] = {
       val processError = Log[F].warn(
         s"Client stream message queue for $peer is full (${bufferSize} items). Dropping message.)"

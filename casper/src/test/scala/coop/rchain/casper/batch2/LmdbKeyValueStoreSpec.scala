@@ -46,7 +46,6 @@ class LmdbKeyValueStoreSpec
   }
 
   implicit val log: Log[IO] = new Log.NOPLog[IO]()
-  import coop.rchain.shared.RChainScheduler._
 
   it should "put and get data from the store" in {
     forAll(genData) { expected =>

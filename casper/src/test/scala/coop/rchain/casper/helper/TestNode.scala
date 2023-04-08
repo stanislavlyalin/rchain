@@ -384,7 +384,6 @@ object TestNode {
     implicit val log       = Log.log[F]
     implicit val metricEff = new Metrics.MetricsNOP[F]
     implicit val spanEff   = new NoopSpan[F]
-    import RChainScheduler._
     for {
       newStorageDir   <- Resources.copyStorage[F](storageDir)
       kvm             <- Resource.eval(Resources.mkTestRNodeStoreManager(newStorageDir))
@@ -398,8 +397,7 @@ object TestNode {
                            rSpaceStore,
                            mStore,
                            BlockRandomSeed.nonNegativeMergeableTagName(genesis.shardId),
-                           RuntimeManager.noOpExecutionTracker[F],
-                           rholangEC
+                           RuntimeManager.noOpExecutionTracker[F]
                          )
                        )
 

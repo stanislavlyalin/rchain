@@ -26,7 +26,6 @@ import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
 import scala.concurrent.duration.{Duration, FiniteDuration}
-import coop.rchain.shared.RChainScheduler._
 
 class RhoSpec(
     testObject: CompiledRholangSource[_],
@@ -145,7 +144,6 @@ class RhoSpec(
           RhoRuntime.createRuntime(
             _,
             BlockRandomSeed.nonNegativeMergeableTagName(shardId),
-            rholangEC,
             additionalSystemProcesses = testFrameworkContracts(testResultCollector)
           )
         )

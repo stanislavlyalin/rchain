@@ -44,8 +44,7 @@ object NodeRuntime {
       * although they can be generated with cats.tagless @autoFunctorK macros but support is missing for IntelliJ.
       * https://github.com/typelevel/cats-tagless/issues/60 (Cheers, Marcin!!)
       */
-    implicit val lg: Log[ReaderNodeCallCtx]      = Log[F].mapK(effToEnv)
-    implicit val tm: Temporal[ReaderNodeCallCtx] = Temporal[F].mapK(effToEnv)
+    implicit val lg: Log[ReaderNodeCallCtx] = Log[F].mapK(effToEnv)
 
     for {
       id <- NodeEnvironment.create[F](nodeConf)
@@ -139,8 +138,7 @@ class NodeRuntime[F[_]: Parallel: Async: LocalEnvironment: Log] private[node] (
         implicit val (p, m) = (rpConfAsk, metrics)
         effects.kademliaRPC(
           nodeConf.protocolServer.networkId,
-          nodeConf.protocolClient.networkTimeout,
-          grpcEC
+          nodeConf.protocolClient.networkTimeout
         )
       }
 
@@ -208,8 +206,7 @@ class NodeRuntime[F[_]: Parallel: Async: LocalEnvironment: Log] private[node] (
                 adminWebApi,
                 reportRoutes,
                 nodeConf,
-                kamonConf,
-                grpcEC
+                kamonConf
               )
           // Return node launch stream
         } yield nodeLaunch
